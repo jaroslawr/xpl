@@ -13,29 +13,34 @@ public class Scope {
 
   private static int localVariablesCount = 0;
 
-  public Argument createArgument(String name) {
+  public Argument addArgument(String name) {
     Argument arg = new Argument(name, argumentsCount++);
     symbols.put(name, arg);
     return arg;
   }
 
-  public LocalVariable createLocalVariable(String name) {
+  public LocalVariable addLocalVariable(String name) {
     LocalVariable var = new LocalVariable(name, localVariablesCount++);
     symbols.put(name, var);
     return var;
   }
 
-  public Method createMethod(String name, int arity) {
+  public Method addMethod(String name, int arity) {
     Method method = new Method(name, arity);
     symbols.put(name, method);
     return method;
   }
 
-  public Symbol lookup(String name) {
+  public Variable      findVariable(String name)      { return (Variable)      find(name, "variable"); }
+  public Argument      findArgument(String name)      { return (Argument)      find(name, "argument"); }
+  public LocalVariable findLocalVariable(String name) { return (LocalVariable) find(name, "local-variable"); }
+  public Method        findMethod(String name)        { return (Method)        find(name, "method"); }
+
+  private Symbol find(String name, String type) {
     Symbol sym = symbols.get(name);
-    if(sym != null)
+    if(sym != null && sym.isOfType(type))
       return sym;
-    return parent == null ? null : parent.lookup(name);
+    return parent == null ? null : parent.find(name, type);
   }
 
   public String toString() {

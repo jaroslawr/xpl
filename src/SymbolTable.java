@@ -18,23 +18,30 @@ public class SymbolTable implements Opcodes {
   }
 
   public Scope addMethod(String name, ArrayList<String> args) {
-    currentScope.createMethod(name, args.size());
+    currentScope.addMethod(name, args.size());
     Scope scope = enterScope();
-    for(String arg : args) currentScope.createArgument(arg);
+    for(String arg : args) currentScope.addArgument(arg);
     return scope;
   }
 
   public void addLocalVariable(String name) {
-    currentScope.createLocalVariable(name);
+    currentScope.addLocalVariable(name);
   }
 
-  public Symbol lookup(String name) {
-    return currentScope.lookup(name);
+  public Variable findVariable(String name) {
+    return currentScope.findVariable(name);
   }
 
-  public LocalVariable lookupLocalVariable(String name) {
-    Symbol sym = lookup(name);
-    return sym != null && sym.isOfType("local-variable") ? (LocalVariable) sym : null;
+  public Argument findArgument(String name) {
+    return currentScope.findArgument(name);
+  }
+
+  public LocalVariable findLocalVariable(String name) {
+    return currentScope.findLocalVariable(name);
+  }
+
+  public Method findMethod(String name) {
+    return currentScope.findMethod(name);
   }
 
   public String toString() {

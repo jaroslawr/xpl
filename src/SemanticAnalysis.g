@@ -58,7 +58,7 @@ loop_body
 
 assignment
     :  ^('=' name=IDENTIFIER value=expression) {
-          LocalVariable var = symbolTable.lookupLocalVariable($name.text);
+          LocalVariable var = symbolTable.findLocalVariable($name.text);
           if(var == null)
             symbolTable.addLocalVariable($name.text);
           $assignment.start.type = $value.start.type;

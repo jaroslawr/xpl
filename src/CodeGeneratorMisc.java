@@ -14,7 +14,7 @@ public class CodeGeneratorMisc extends CodeGeneratorModule {
   };
 
   public void storeVariable(String name) {
-    LocalVariable var = (LocalVariable) scope.lookup(name);
+    LocalVariable var = scope.findLocalVariable(name);
     if(!var.isInitialized()) {
       classWriter.visitField(ACC_PUBLIC, var.getVariableId(), "I", "", null);
       var.makeInitialized();
@@ -23,16 +23,16 @@ public class CodeGeneratorMisc extends CodeGeneratorModule {
   }
 
   public void loadVariable(String name) {
-    Symbol sym = scope.lookup(name);
+    Variable var = scope.findVariable(name);
 
-    if(sym.isOfType("argument")) {
-      Argument arg = (Argument) sym;
+    if(var.isOfType("argument")) {
+      Argument arg = (Argument) var;
       currentMethod.visitVarInsn(ILOAD, arg.getId());
     }
-    else if (sym.isOfType("local-variable")) {
-      LocalVariable var = (LocalVariable) sym;
+    else if (var.isOfType("local-variable")) {
+      LocalVariable lVar = (LocalVariable) var;
       currentMethod.visitVarInsn(ALOAD, 0);
-      currentMethod.visitFieldInsn(GETFIELD, className, var.getVariableId(), "I");
+      currentMethod.visitFieldInsn(GETFIELD, className, lVar.getVariableId(), "I");
     }
   }
 

@@ -13,7 +13,7 @@ public class CodeGeneratorMethod extends CodeGeneratorModule {
   }
 
   public void definition(String name) {
-    Method method = (Method) scope.lookup(name);
+    Method method = scope.findMethod(name);
     MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC, name, method.getSignature(), null, null);
     context.switchMethodVisitor(methodVisitor);
   }
@@ -40,7 +40,7 @@ public class CodeGeneratorMethod extends CodeGeneratorModule {
       currentMethod.visitInsn(POP);
     }
     else {
-      Method method = (Method) scope.lookup(name);
+      Method method = scope.findMethod(name);
       currentMethod.visitMethodInsn(INVOKEVIRTUAL, className, name, method.getSignature());
     }
   }

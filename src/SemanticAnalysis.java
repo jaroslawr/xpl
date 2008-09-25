@@ -1,4 +1,4 @@
-// $ANTLR 3.1 SemanticAnalysis.g 2008-09-25 11:12:50
+// $ANTLR 3.1 SemanticAnalysis.g 2008-09-25 16:41:47
 
 import org.antlr.runtime.*;
 import org.antlr.runtime.tree.*;import java.util.Stack;
@@ -967,7 +967,7 @@ public class SemanticAnalysis extends TreeParser {
 
             match(input, Token.UP, null); 
 
-                      LocalVariable var = symbolTable.lookupLocalVariable((name!=null?name.getText():null));
+                      LocalVariable var = symbolTable.findLocalVariable((name!=null?name.getText():null));
                       if(var == null)
                         symbolTable.addLocalVariable((name!=null?name.getText():null));
                       ((ASTNode)retval.start).type = (value!=null?((ASTNode)value.start):null).type;
