@@ -1,0 +1,67 @@
+<project name="Xpl" default="dist" basedir=".">
+  <description>
+    Builds the Xpl compiler and runs the associated unit and integration tests.
+  </description>
+
+  <property name="src-compiler"     location="src/compiler"/>
+  <property name="src-runtime"      location="src/runtime"/>
+  <property name="bin"              location="bin" />
+  <property name="classes"          location="${bin}/classes" />
+  <property name="classes-compiler" location="${bin}/classes/compiler"/>
+  <property name="classes-runtime"  location="${bin}/classes/runtime"/>
+
+  <macrodef name="antlr3">
+    <attribute name="grammarname"/>
+    <attribute name="outputdirectory"/>
+    <sequential>
+      <antlr:antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr"
+                    target="@{grammarname}"
+                    outputdirectory="@{outputdirectory}"
+                    libdirectory="${src-compiler}"
+                    multithreaded="${multithreaded}"
+                    report="${report}"
+                    depend="${depend}"
+                    profile="${profile}">
+      </antlr:antlr3>
+    </sequential>
+  </macrodef>
+
+  <target name="init">
+    <tstamp/>
+    <mkdir dir="${classes}"/>
+    <mkdir dir="${classes-compiler}"/>
+    <mkdir dir="${classes-runtime}"/>
+  </target>
+
+  <target name="compile-grammars" depends="init" description="compile the ANTLR grammars">
+    <antlr3 grammarname="${src-compiler}/Xpl.g" outputdirectory="${src-compiler}" />
+    <antlr3 grammarname="${src-compiler}/SemanticAnalysis.g" outputdirectory="${src-compiler}" />
+    <antlr3 grammarname="${src-compiler}/CodeGeneration.g" outputdirectory="${src-compiler}" />
+  </target>
+
+  <target name="compile" depends="compile-grammars" description="compile the source">
+    <javac srcdir="${src-compiler}" destdir="${classes-compiler}"/>
+    <javac srcdir="${src-runtime}"  destdir="${classes-runtime}"/>
+  </target>
+
+  <target name="dist" depends="compile" description="generate the distribution">
+    <jar jarfile="${bin}/xpl.jar" basedir="${classes-compiler}">
+      <manifest>
+        <attribute name="Main-Class" value="Xpl" />
+        <attribute name="Class-Path" value="antlr-runtime-3.1.jar asm-all-3.1.jar" />
+      </manifest>
+    </jar>
+
+    <jar jarfile="${bin}/runtime.jar" basedir="${classes-runtime}" />
+  </target>
+
+  <target name="clean" description="clean up">
+    <delete dir="${classes}"/>
+    <delete file="${src-compiler}/XplLexer.java"/>
+    <delete file="${src-compiler}/XplParser.java"/>
+    <delete file="${src-compiler}/SemanticAnalysis.java"/>
+    <delete file="${src-compiler}/CodeGeneration.java"/>
+    <delete file="${bin}/runtime.jar"/>
+    <delete file="${bin}/xpl.jar"/>
+  </target>
+</project>
