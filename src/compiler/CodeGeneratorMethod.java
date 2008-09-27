@@ -24,7 +24,7 @@ public class CodeGeneratorMethod extends CodeGeneratorModule {
 
   public void finish() {
     currentMethod.visitInsn(IRETURN);
-    currentMethod.visitMaxs(10, scope.getArgumentsCount() + 1);
+    currentMethod.visitMaxs(10, scope.getArgumentsCount());
     context.leaveMethod();
     context.switchScope(scope.getParentScope());
   }
