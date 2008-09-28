@@ -15,15 +15,13 @@ import org.apache.commons.io.*;
 import org.apache.commons.io.filefilter.*;
 
 public class IntegrationTest {
-  private String filename;
-  private String path;
-  private String basename;
+  private String filename, path, basename;
 
   @Test
   public void keepsLanguageConformance() {
-    File   dir            = new File("tests/integration");
+    File           dir    = new File("tests/integration");
     FilenameFilter filter = new RegexFileFilter("^.*\\.xpl$");
-    File[] files          = dir.listFiles(filter);
+    File[]         files  = dir.listFiles(filter);
 
     for (File xplProgramFile : files) {
       filename  = xplProgramFile.toString();
@@ -38,34 +36,30 @@ public class IntegrationTest {
   private void checkIfWasCompiled(File xplProgramFile) {
     File xplClassFile = new File(path + basename + ".class");
     if(!xplClassFile.exists()) {
-      try {
-	File  compilationOutputFile = new File(path + basename + ".compilation");
-	String compilationOutput    = listToString(FileUtils.readLines(compilationOutputFile));
-	fail(xplProgramFile + " couldn't be compiled\n" + compilationOutput);
-      }
-      catch(IOException e) {
-	fail(xplProgramFile + " compilation output isn't available");
-      }
+      String error         =  xplProgramFile + " compilation output isn't available";
+      String compileOutput = readFromFile(path + basename + ".compilation", error);
+      fail(xplProgramFile + " couldn't be compiled\n" + compileOutput);
     }
   }
 
   private void checkIfOutputWasCorrect(File xplProgramFile) {
+    String error         = xplProgramFile + " outputs aren't available";
+    String desiredOutput = readFromFile(path + basename + ".output-desired", error);
+    String currentOutput = readFromFile(path + basename + ".output-current", error);
+
+    if(!currentOutput.equals(desiredOutput)) {
+      String outputsDiff = readFromFile(path + basename + ".output-diff", error);
+      fail(xplProgramFile + " gave incorrect output\n" + outputsDiff);
+    }
+  }
+
+  private String readFromFile(String filename, String errorMessage) {
     try {
-      File   desiredOutputFile = new File(path + basename + ".output-desired");
-      String desiredOutput     = listToString(FileUtils.readLines(desiredOutputFile));
-
-      File   currentOutputFile = new File(path + basename + ".output-current");
-      String currentOutput     = listToString(FileUtils.readLines(currentOutputFile));
-
-      if(!currentOutput.equals(desiredOutput)) {
-	File   outputsDiffFile = new File(path + basename + ".output-diff");
-	String outputsDiff     = listToString(FileUtils.readLines(outputsDiffFile));
-	fail(xplProgramFile + " gave incorrect output\n" + outputsDiff);
-      }
+      return listToString(FileUtils.readLines(new File(filename)));
     }
-    catch(IOException e) {
-      fail(xplProgramFile + " outputs aren't available");
-    }
+    catch(IOException e) { fail(errorMessage); }
+
+    return null;
   }
 
   private String listToString(List list) {
