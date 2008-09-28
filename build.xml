@@ -1,4 +1,4 @@
-<project name="Xpl" default="dist" basedir=".">
+<project name="Xpl" default="integration-test" basedir=".">
   <description>
     Builds the Xpl compiler and runs the associated unit and integration tests.
   </description>
@@ -30,12 +30,22 @@
     </sequential>
   </macrodef>
 
+  <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+
   <target name="init">
     <tstamp/>
     <mkdir dir="${classes}"/>
     <mkdir dir="${classes-compiler}"/>
     <mkdir dir="${classes-runtime}"/>
     <mkdir dir="${classes-tests}"/>
+    <delete>
+      <fileset dir="${tests-integration}">
+        <include name="*.class"/>
+        <include name="*.output-current"/>
+        <include name="*.output-diff"/>
+        <include name="*.compilation"/>
+      </fileset>
+    </delete>
   </target>
 
   <target name="compile-grammars" depends="init" description="compile the ANTLR grammars">
@@ -54,9 +64,16 @@
         <pathelement location="${classes-runtime}"/>
       </classpath>
     </javac>
+
+    <javac srcdir="${tests-integration}"   destdir="${classes-tests}">
+      <classpath>
+        <pathelement location="${classes-compiler}"/>
+        <pathelement location="${classes-runtime}"/>
+      </classpath>
+    </javac>
   </target>
 
-  <target name="test" depends="compile" description="run the units tests">
+  <target name="test" depends="compile" description="run the unit and integration tests">
     <junit haltonfailure="yes" haltonerror="yes">
       <classpath>
         <pathelement location="${classes-compiler}"/>
@@ -95,5 +112,41 @@
     <delete file="${src-compiler}/CodeGeneration.java"/>
     <delete file="${bin}/runtime.jar"/>
     <delete file="${bin}/xpl.jar"/>
+  </target>
+
+  <target name="integration-test" depends="dist" description="compile and run tests from tests/integration creating appropiate output files">
+    <for param="file">
+      <path>
+        <fileset dir="${tests-integration}" includes="*.xpl"/>
+      </path>
+      <sequential>
+        <basename property="@{file}-test-name" file="@{file}" suffix=".xpl" />
+
+        <java jar="${bin}/xpl.jar" fork="true" output="${tests-integration}/${@{file}-test-name}.compilation">
+          <arg value="@{file}" />
+          <arg value="${tests-integration}/${@{file}-test-name}.class" />
+        </java>
+
+        <java classpath="${tests-integration}:${classes-runtime}" classname="${@{file}-test-name}" fork="true" output="${tests-integration}/${@{file}-test-name}.output-current" />
+
+        <exec executable="diff" output="${tests-integration}/${@{file}-test-name}.output-diff">
+          <arg value="${tests-integration}/${@{file}-test-name}.output-desired"/>
+          <arg value="${tests-integration}/${@{file}-test-name}.output-current"/>
+        </exec>
+      </sequential>
+    </for>
+
+    <junit haltonfailure="yes" haltonerror="yes">
+      <classpath>
+        <pathelement location="${classes-compiler}"/>
+        <pathelement location="${classes-runtime}"/>
+        <pathelement location="${classes-tests}"/>
+        <pathelement path="${java.class.path}"/>
+      </classpath>
+
+      <test name="IntegrationTest">
+        <formatter type="plain" usefile="false" />
+      </test>
+    </junit>
   </target>
 </project>

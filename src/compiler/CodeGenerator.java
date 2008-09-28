@@ -41,6 +41,6 @@ public class CodeGenerator implements Opcodes {
   }
 
   private String extractClassName(String filename) {
-    return filename.substring(0, filename.indexOf("."));
+    return filename.substring(filename.lastIndexOf("/")+1, filename.indexOf("."));
   }
 }
