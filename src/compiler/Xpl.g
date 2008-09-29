@@ -16,7 +16,7 @@ method_header
     :                    'method' identifier '(' ')' -> ^(identifier)
     |                    'method' identifier '(' method_arguments ')' -> ^(identifier method_arguments);
 
-method_arguments:        identifier (','! identifier)*;
+method_arguments:        variable_declaration (','! variable_declaration)*;
 
 method_body:             atomic_operation+;
 
@@ -27,7 +27,11 @@ conditional_else:        'else' expression newline? atomic_operations_list -> ^(
 
 loop:                    'while' expression newline? atomic_operations_list 'end' -> ^(WHILE expression WHILE_BODY atomic_operations_list);
 
-assignment:              identifier ('='^ expression);
+assignment:              variable_declaration ('='^ expression);
+
+variable_declaration:    type_declaration identifier;
+
+type_declaration:        'int';
 
 expression:              boolean_expression;
 

@@ -24,7 +24,7 @@ method_definition
     :  ^(METHOD method_header METHOD_BODY method_body);
 
 method_header
-    :  ^(name=IDENTIFIER ((args+=IDENTIFIER)+)?) {
+    :  ^(name=IDENTIFIER ((type_declaration args+=IDENTIFIER)+)?) {
           ArrayList<String> arguments = new ArrayList<String>();
           for(Object tree : $args)
             arguments.add(((ASTNode)tree).getText());
@@ -57,12 +57,16 @@ loop_body
     :  (conditional | assignment | expression)+;
 
 assignment
-    :  ^('=' name=IDENTIFIER value=expression) {
+    :  ^('=' type_declaration name=IDENTIFIER value=expression) {
           LocalVariable var = symbolTable.findLocalVariable($name.text);
           if(var == null)
             symbolTable.addLocalVariable($name.text);
           $assignment.start.type = $value.start.type;
         };
+
+variable_declaration: type_declaration identifier;
+
+type_declaration: 'int';
 
 expression
 @init { $expression.start.type = "integer"; }

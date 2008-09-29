@@ -34,7 +34,7 @@ method_definition
     :  ^(METHOD method_header METHOD_BODY method_body);
 
 method_header
-    :  ^(name=IDENTIFIER ((args+=IDENTIFIER)+)?) {
+    :  ^(name=IDENTIFIER ((type_declaration args+=IDENTIFIER)+)?) {
           generate.switchScope($method_header.start.scope);
           generate.method().definition($name.text);
 };
@@ -70,7 +70,11 @@ loop_body
 
 assignment
 @init  { generate.misc().pushThis(); }
-    :  ^('=' var=IDENTIFIER val=expression) { generate.misc().storeVariable($var.text); };
+    :  ^('=' type_declaration var=IDENTIFIER val=expression) { generate.misc().storeVariable($var.text); };
+
+variable_declaration: type_declaration identifier;
+
+type_declaration: 'int';
 
 expression
     : boolean_expression;
