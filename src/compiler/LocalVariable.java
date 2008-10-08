@@ -4,10 +4,6 @@ public class LocalVariable extends Variable {
 
   private String variableId;
 
-  private boolean initialized = false;
-  public  boolean isInitialized()   { return initialized; }
-  public  void    makeInitialized() { initialized = true; }
-
   public LocalVariable(String name, int id) {
     this.name       = name;
     this.variableId = "variable" + id;

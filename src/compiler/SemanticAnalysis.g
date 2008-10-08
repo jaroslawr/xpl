@@ -14,7 +14,7 @@ program
     : ((method_definition | atomic_operation) newline?)+;
 
 atomic_operation
-    :  conditional | loop | assignment | expression | return_expression;
+    :  conditional | loop | variable_definition | assignment | expression | return_expression;
 
 atomic_operations_list
     :  atomic_operation+;
@@ -44,27 +44,26 @@ conditional_test
 conditional_else
     :  ^(ELSE expression ELSE_BODY atomic_operations_list);
 
-conditional_body
-    :  (conditional | assignment | expression)+;
-
 loop
-    :  ^(WHILE loop_test WHILE_BODY loop_body);
+    :  ^(WHILE loop_test WHILE_BODY atomic_operations_list);
 
 loop_test
     :  expression;
 
-loop_body
-    :  (conditional | assignment | expression)+;
-
-assignment
+variable_definition
     :  ^('=' type_declaration name=IDENTIFIER value=expression) {
-          LocalVariable var = symbolTable.findLocalVariable($name.text);
-          if(var == null)
+            LocalVariable var = symbolTable.findLocalVariable($name.text);
+            if(var != null)
+                // foo already defined
+                return;
             symbolTable.addLocalVariable($name.text);
-          $assignment.start.type = $value.start.type;
         };
 
-variable_declaration: type_declaration identifier;
+assignment
+    :  ^('=' name=IDENTIFIER value=expression) {
+          LocalVariable var = symbolTable.findLocalVariable($name.text);
+          $assignment.start.type = $value.start.type;
+        };
 
 type_declaration: 'int';
 

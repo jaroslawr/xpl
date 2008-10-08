@@ -15,16 +15,17 @@ options {
 }
 
 program
+@init {
+    generate.switchScope($program.start.scope);
+}
 @after {
     generate.misc().finish();
     generate.getOutput().save();
 }
-    : ((method_definition | atomic_operation) newline?)+ {
-          generate.switchScope($program.start.scope);
-        };
+    : ((method_definition | atomic_operation) newline?)+;
 
 atomic_operation
-    :  conditional | loop | assignment | expression | return_expression;
+    :  conditional | loop | assignment | variable_definition | expression | return_expression;
 
 atomic_operations_list
     :  atomic_operation+;
@@ -53,9 +54,6 @@ conditional_test
 conditional_else
     :  ^(ELSE expression ELSE_BODY atomic_operations_list);
 
-conditional_body
-    :  (conditional | assignment | expression)+;
-
 loop
     :  ^(WHILE loop_test WHILE_BODY loop_body);
 
@@ -66,13 +64,19 @@ loop_test
 
 loop_body
 @after { generate.loop().whileAfterBody(); }
-    :  (conditional | assignment | expression)+;
+    :  atomic_operations_list;
+
+variable_definition
+@init  { generate.misc().pushThis(); }
+    :  ^('=' type_declaration name=IDENTIFIER value=expression) {
+            generate.misc().createVariable($name.text);
+        };
 
 assignment
 @init  { generate.misc().pushThis(); }
-    :  ^('=' type_declaration var=IDENTIFIER val=expression) { generate.misc().storeVariable($var.text); };
-
-variable_declaration: type_declaration identifier;
+    :  ^('=' name=IDENTIFIER value=expression) {
+            generate.misc().assignToVariable($name.text);
+        };
 
 type_declaration: 'int';
 

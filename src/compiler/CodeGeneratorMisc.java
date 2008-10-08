@@ -13,12 +13,14 @@ public class CodeGeneratorMisc extends CodeGeneratorModule {
     currentMethod.visitVarInsn(ALOAD, 0);
   };
 
-  public void storeVariable(String name) {
+  public void createVariable(String name) {
     LocalVariable var = scope.findLocalVariable(name);
-    if(!var.isInitialized()) {
-      classWriter.visitField(ACC_PUBLIC, var.getVariableId(), "I", "", null);
-      var.makeInitialized();
-    }
+    classWriter.visitField(ACC_PUBLIC, var.getVariableId(), "I", "", null);
+    assignToVariable(name);
+  }
+
+  public void assignToVariable(String name) {
+    LocalVariable var = scope.findLocalVariable(name);
     currentMethod.visitFieldInsn(PUTFIELD, className, var.getVariableId(), "I");
   }
 
@@ -38,7 +40,7 @@ public class CodeGeneratorMisc extends CodeGeneratorModule {
 
   public void finish() {
     currentMethod.visitInsn(RETURN);
-    currentMethod.visitMaxs(stackDepth, 1);
+    currentMethod.visitMaxs(10, 1);
     currentMethod.visitEnd();
   }
 }

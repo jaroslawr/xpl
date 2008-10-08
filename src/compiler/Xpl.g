@@ -6,7 +6,7 @@ tokens  { CALL; CALL_ARGUMENTS; WHILE; WHILE_BODY; IF; IF_BODY; ELSE; ELSE_BODY;
 
 program:                 ((method_definition | atomic_operation) newline?)+;
 
-atomic_operation:        conditional | loop | assignment | expression | return_expression;
+atomic_operation:        conditional | loop | assignment | variable_definition | expression | return_expression;
 
 atomic_operations_list:  (atomic_operation (newline!)?)+;
 
@@ -27,11 +27,13 @@ conditional_else:        'else' expression newline? atomic_operations_list -> ^(
 
 loop:                    'while' expression newline? atomic_operations_list 'end' -> ^(WHILE expression WHILE_BODY atomic_operations_list);
 
-assignment:              variable_declaration ('='^ expression);
-
 variable_declaration:    type_declaration identifier;
 
+variable_definition:     type_declaration identifier '=' expression -> ^('=' type_declaration identifier expression);
+
 type_declaration:        'int';
+
+assignment:              identifier '=' expression -> ^('=' identifier expression);
 
 expression:              boolean_expression;
 
