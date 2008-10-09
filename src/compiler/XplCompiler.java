@@ -19,9 +19,21 @@ public class XplCompiler {
   public void go() {
     try {
       parse(); semanticAnalysis(); codeGeneration();
+
+      System.out.println("Successfully compiled " + args[0]);
     }
-    catch(IOException e)          { System.out.println("Input/output error"); }
-    catch(RecognitionException e) { System.out.println("Not a valid program"); }
+    catch(SemanticAnalysisError e) {
+      System.out.println("Semantic errors: ");
+      System.out.println();
+      for(String error : semanticAnalysis.getErrors())
+	System.out.println(error);
+    }
+    catch(RecognitionException e)  {
+      System.out.println("Not a valid program");
+    }
+    catch(IOException e) {
+      System.out.println("Input/output error");
+    }
   }
 
   private void parse() throws IOException, RecognitionException {
@@ -38,8 +50,6 @@ public class XplCompiler {
     semanticAnalysis = new SemanticAnalysis(nodes);
     semanticAnalysis.program();
     nodes.reset();
-
-    System.out.println(ast.toStringTree());
   }
 
   private void codeGeneration() throws RecognitionException {

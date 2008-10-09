@@ -120,12 +120,7 @@ scope {
   ArrayList<ASTNode> arguments;
 }
 @init { $call_arguments::arguments = new ArrayList<ASTNode>(); }
-    :  ^(CALL_ARGUMENTS argument*)  {
-          System.out.println("Arguments");
-          for(ASTNode argument : $call_arguments::arguments)
-              System.out.println(argument);
-          System.out.println();
-        };
+    :  ^(CALL_ARGUMENTS argument*);
 
 argument: expression {
           $call_arguments::arguments.add((ASTNode)$expression.start);

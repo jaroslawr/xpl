@@ -7,11 +7,20 @@ options {
 
 @members {
   private SymbolTable symbolTable = new SymbolTable();
+
+  private ArrayList<String> errors = new ArrayList<String>();
+  public ArrayList<String> getErrors() { return errors; }
+
+  public void reportError(RecognitionException e) {}
 }
 
 program
-@init { $program.start.scope = symbolTable.enterScope(); }
+@init  { $program.start.scope = symbolTable.enterScope(); }
+@after { if(!errors.isEmpty()) throw new SemanticAnalysisError(); }
     : ((method_definition | atomic_operation) newline?)+;
+catch [RecognitionException re] {
+    throw re;
+}
 
 atomic_operation
     :  conditional | loop | variable_definition | assignment | expression | return_expression;
@@ -53,15 +62,20 @@ loop_test
 variable_definition
     :  ^('=' type_declaration name=IDENTIFIER value=expression) {
             LocalVariable var = symbolTable.findLocalVariable($name.text);
-            if(var != null)
-                // foo already defined
-                return;
+            if(var != null) {
+              errors.add("Line " + $name.line + ": declaring an already declared variable");
+              throw new RecognitionException(input);
+            }
             symbolTable.addLocalVariable($name.text);
         };
 
 assignment
     :  ^('=' name=IDENTIFIER value=expression) {
           LocalVariable var = symbolTable.findLocalVariable($name.text);
+          if(var == null) {
+              errors.add("Line " + $name.line + ": using an undeclared variable");
+              throw new RecognitionException(input);
+          }
           $assignment.start.type = $value.start.type;
         };
 

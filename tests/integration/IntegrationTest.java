@@ -19,9 +19,7 @@ public class IntegrationTest {
 
   @Test
   public void keepsLanguageConformance() {
-    File           dir    = new File("tests/integration");
-    FilenameFilter filter = new RegexFileFilter("^.*\\.xpl$");
-    File[]         files  = dir.listFiles(filter);
+    File[] files = filesFromDirectory("tests/integration/positive", "^.*\\.xpl$");
 
     for (File xplProgramFile : files) {
       filename  = xplProgramFile.toString();
@@ -29,7 +27,7 @@ public class IntegrationTest {
       basename  = FilenameUtils.getBaseName(filename);
 
       checkIfWasCompiled(xplProgramFile);
-      checkIfOutputWasCorrect(xplProgramFile);
+      checkIfProgramOutputWasCorrect(xplProgramFile);
     }
   }
 
@@ -42,7 +40,7 @@ public class IntegrationTest {
     }
   }
 
-  private void checkIfOutputWasCorrect(File xplProgramFile) {
+  private void checkIfProgramOutputWasCorrect(File xplProgramFile) {
     String error         = xplProgramFile + " outputs aren't available";
     String desiredOutput = readFromFile(path + basename + ".output-desired", error);
     String currentOutput = readFromFile(path + basename + ".output-current", error);
@@ -51,6 +49,34 @@ public class IntegrationTest {
       String outputsDiff = readFromFile(path + basename + ".output-diff", error);
       fail(xplProgramFile + " gave incorrect output\n" + outputsDiff);
     }
+  }
+
+  @Test
+  public void emitsValidErrorMessagesForIncorrectPrograms() {
+    File[] files = filesFromDirectory("tests/integration/negative", "^.*\\.xpl$");
+
+    for (File xplProgramFile : files) {
+      filename  = xplProgramFile.toString();
+      path      = FilenameUtils.getPath(filename);
+      basename  = FilenameUtils.getBaseName(filename);
+
+      checkIfCompilationOutputWasCorrect(xplProgramFile);
+    }
+  }
+
+  private void checkIfCompilationOutputWasCorrect(File xplProgramFile) {
+    String error         = xplProgramFile + " outputs aren't available";
+    String desiredOutput = readFromFile(path + basename + ".compilation-desired", error);
+    String currentOutput = readFromFile(path + basename + ".compilation-current", error);
+
+    if(!currentOutput.equals(desiredOutput)) {
+      fail(xplProgramFile + "Compilation was expected to emit the following errors: \n" +
+	   desiredOutput + "\nInstead it finished with: \n" + currentOutput);
+    }
+  }
+
+  private File[] filesFromDirectory(String directory, String files) {
+    return (new File(directory)).listFiles((FilenameFilter)new RegexFileFilter(files));
   }
 
   private String readFromFile(String filename, String errorMessage) {

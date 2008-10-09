@@ -3,16 +3,18 @@
     Builds the Xpl compiler and runs the associated unit and integration tests.
   </description>
 
-  <property name="src-compiler"      location="src/compiler" />
-  <property name="src-runtime"       location="src/runtime" />
-  <property name="bin"               location="bin" />
-  <property name="classes"           location="${bin}/classes" />
-  <property name="classes-compiler"  location="${bin}/classes/compiler" />
-  <property name="classes-runtime"   location="${bin}/classes/runtime" />
-  <property name="classes-tests"     location="${bin}/classes/tests" />
-  <property name="tests"             location="tests/" />
-  <property name="tests-unit"        location="tests/unit" />
-  <property name="tests-integration" location="tests/integration" />
+  <property name="src-compiler"          location="src/compiler" />
+  <property name="src-runtime"           location="src/runtime" />
+  <property name="bin"                   location="bin" />
+  <property name="classes"               location="${bin}/classes" />
+  <property name="classes-compiler"      location="${bin}/classes/compiler" />
+  <property name="classes-runtime"       location="${bin}/classes/runtime" />
+  <property name="classes-tests"         location="${bin}/classes/tests" />
+  <property name="tests"                 location="tests/" />
+  <property name="tests-unit"            location="tests/unit" />
+  <property name="tests-integration"     location="tests/integration" />
+  <property name="tests-integration-pos" location="tests/integration/positive" />
+  <property name="tests-integration-neg" location="tests/integration/negative" />
 
   <macrodef name="antlr3">
     <attribute name="grammarname"/>
@@ -82,7 +84,7 @@
         <pathelement path="${java.class.path}"/>
       </classpath>
 
-      <formatter type="plain" usefile="false" />
+      <formatter type="brief" usefile="false" />
 
       <batchtest>
         <fileset dir="${tests-unit}" />
@@ -117,26 +119,41 @@
   <target name="integration-test" depends="dist" description="compile and run tests from tests/integration creating appropiate output files">
     <for param="file">
       <path>
-        <fileset dir="${tests-integration}" includes="*.xpl"/>
+        <fileset dir="${tests-integration-pos}" includes="*.xpl"/>
       </path>
       <sequential>
         <basename property="@{file}-test-name" file="@{file}" suffix=".xpl" />
 
-        <java jar="${bin}/xpl.jar" fork="true" output="${tests-integration}/${@{file}-test-name}.compilation">
+        <java jar="${bin}/xpl.jar" fork="true" output="${tests-integration-pos}/${@{file}-test-name}.compilation">
           <arg value="@{file}" />
-          <arg value="${tests-integration}/${@{file}-test-name}.class" />
+          <arg value="${tests-integration-pos}/${@{file}-test-name}.class" />
         </java>
 
-        <java classpath="${tests-integration}:${classes-runtime}" classname="${@{file}-test-name}" fork="true" output="${tests-integration}/${@{file}-test-name}.output-current" />
+        <java classpath="${tests-integration-pos}:${classes-runtime}" classname="${@{file}-test-name}" fork="true" output="${tests-integration-pos}/${@{file}-test-name}.output-current" />
 
-        <exec executable="diff" output="${tests-integration}/${@{file}-test-name}.output-diff">
-          <arg value="${tests-integration}/${@{file}-test-name}.output-desired"/>
-          <arg value="${tests-integration}/${@{file}-test-name}.output-current"/>
+        <exec executable="diff" output="${tests-integration-pos}/${@{file}-test-name}.output-diff">
+          <arg value="${tests-integration-pos}/${@{file}-test-name}.output-desired"/>
+          <arg value="${tests-integration-pos}/${@{file}-test-name}.output-current"/>
         </exec>
       </sequential>
     </for>
 
-    <junit haltonfailure="yes" haltonerror="yes">
+    <for param="file">
+      <path>
+        <fileset dir="${tests-integration-neg}" includes="*.xpl"/>
+      </path>
+      <sequential>
+        <basename property="@{file}-test-name" file="@{file}" suffix=".xpl" />
+
+        <java jar="${bin}/xpl.jar" fork="true" output="${tests-integration-neg}/${@{file}-test-name}.compilation-current">
+          <arg value="@{file}" />
+          <arg value="${tests-integration-neg}/${@{file}-test-name}.class" />
+        </java>
+      </sequential>
+    </for>
+
+
+    <junit haltonfailure="yes" haltonerror="yes" showoutput="yes">
       <classpath>
         <pathelement location="${classes-compiler}"/>
         <pathelement location="${classes-runtime}"/>
@@ -145,7 +162,6 @@
       </classpath>
 
       <test name="IntegrationTest">
-        <formatter type="plain" usefile="false" />
       </test>
     </junit>
   </target>
