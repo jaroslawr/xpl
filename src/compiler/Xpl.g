@@ -2,7 +2,7 @@ grammar Xpl;
 
 options { output=AST; ASTLabelType=CommonTree; }
 
-tokens  { CALL; CALL_ARGUMENTS; WHILE; WHILE_BODY; IF; IF_BODY; ELSE; ELSE_BODY; METHOD; METHOD_BODY; RETURN; }
+tokens  { CALL; CALL_ARGUMENTS; WHILE; IF; METHOD; PROGN; RETURN; }
 
 @members {
     private ArrayList<String> errors = new ArrayList<String>();
@@ -10,46 +10,40 @@ tokens  { CALL; CALL_ARGUMENTS; WHILE; WHILE_BODY; IF; IF_BODY; ELSE; ELSE_BODY;
 
     public void reportError(RecognitionException e) {
         errors.add(getErrorHeader(e) + " " + getErrorMessage(e, getTokenNames()));
-
         state.errorRecovery = true;
     }
 }
 
 program
 @after { if(!errors.isEmpty()) throw new SyntacticAnalysisError(); }
-    :                    ((method_definition | atomic_operation) newline?)+;
+    :                    (method_definition | atomic_operation)+;
 catch [RecognitionException re] {
     throw re;
 }
 
 atomic_operation:        conditional | loop | assignment | variable_definition | expression | return_expression;
 
-atomic_operations_list:  (atomic_operation (newline!)?)+;
+method_definition:       method_header atomic_operation+ 'end' -> ^(METHOD method_header ^(PROGN atomic_operation+));
 
-method_definition:       method_header method_body 'end' -> ^(METHOD method_header METHOD_BODY method_body);
-
-method_header
-    :                    'method' identifier '(' ')' -> ^(identifier)
-    |                    'method' identifier '(' method_arguments ')' -> ^(identifier method_arguments);
+method_header:           'method' IDENTIFIER '(' method_arguments? ')' -> ^(IDENTIFIER method_arguments?);
 
 method_arguments:        variable_declaration (','! variable_declaration)*;
 
-method_body:             atomic_operation+;
+return_expression:       'return' expression -> ^(RETURN expression);
 
-conditional:             'if' expression newline? atomic_operations_list 'end'
-                         -> ^(IF expression IF_BODY atomic_operations_list);
+call:                    IDENTIFIER '(' call_arguments? ')' -> ^(CALL IDENTIFIER call_arguments?);
 
-conditional_else:        'else' expression newline? atomic_operations_list -> ^(ELSE expression ELSE_BODY atomic_operations_list);
+call_arguments:          arguments+=expression (',' arguments+=expression)* -> ^(CALL_ARGUMENTS $arguments);
 
-loop:                    'while' expression newline? atomic_operations_list 'end' -> ^(WHILE expression WHILE_BODY atomic_operations_list);
+conditional:             'if' expression atomic_operation+ 'end' -> ^(IF expression ^(PROGN atomic_operation+));
 
-variable_declaration:    type_declaration identifier;
+loop:                    'while' expression atomic_operation+ 'end' -> ^(WHILE expression ^(PROGN atomic_operation+));
 
-variable_definition:     type_declaration identifier '=' expression -> ^('=' type_declaration identifier expression);
+variable_declaration:    TYPE IDENTIFIER;
 
-type_declaration:        TYPE;
+variable_definition:     TYPE IDENTIFIER '='^ expression;
 
-assignment:              identifier '=' expression -> ^('=' identifier expression);
+assignment:              IDENTIFIER '='^ expression;
 
 expression:              boolean_expression;
 
@@ -63,27 +57,7 @@ term:		             factor (('*'^ | '/'^) factor)*;
 
 factor:                  atom ('%'^ atom)*;
 
-atom:                    number | string | (identifier '(') => call | '(' expression ')' | reference;
-
-return_expression:       'return' expression -> ^(RETURN expression);
-
-call
-    :                    identifier '(' ')'        -> ^(CALL identifier)
-    |                    identifier call_arguments -> ^(CALL identifier call_arguments);
-
-call_arguments:          '(' call_arguments_list ')' -> ^(CALL_ARGUMENTS call_arguments_list);
-
-call_arguments_list:     expression (','! expression)*;
-
-reference:               identifier;
-
-identifier:              IDENTIFIER;
-
-number:                  NUMBER;
-
-string:                  STRING;
-
-newline:                 NEWLINE;
+atom:                    NUMBER | STRING | (IDENTIFIER '(') => call | '(' expression ')' | IDENTIFIER;
 
 STRING:                  '\"' (options {greedy=false;}: ('A'..'z') | ' ')* '\"';
 

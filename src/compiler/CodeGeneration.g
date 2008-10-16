@@ -25,44 +25,35 @@ program
     generate.misc().finish();
     generate.getOutput().save();
 }
-    : ((method_definition | atomic_operation) newline?)+;
+    : (method_definition | atomic_operation)+;
 
 atomic_operation
     :  conditional | loop | assignment | variable_definition | expression | return_expression;
-
-atomic_operations_list
-    :  atomic_operation+;
 
 method_definition
 scope {
   int argumentCount;
 }
 @after { generate.method().finish($method_definition::argumentCount); }
-    :  ^(METHOD method_header METHOD_BODY method_body);
+    :  ^(METHOD method_header ^(PROGN atomic_operation+));
 
 method_header
-    :  ^(name=IDENTIFIER ((type_declaration args+=IDENTIFIER)+)?) {
+    :  ^(name=IDENTIFIER ((TYPE args+=IDENTIFIER)+)?) {
           generate.usingFrameId($method_header.start.getFrameId());
           generate.method().definition($name.text);
           $method_definition::argumentCount = $args.size() + 1;
 };
 
-method_body
-    :  atomic_operation+;
-
 conditional
 @after { generate.conditional().ifAfterBody(); }
-    :  ^(IF conditional_test IF_BODY atomic_operations_list);
+    :  ^(IF conditional_test ^(PROGN atomic_operation+));
 
 conditional_test
 @after { generate.conditional().ifAfterCondition(); }
     :  expression;
 
-conditional_else
-    :  ^(ELSE expression ELSE_BODY atomic_operations_list);
-
 loop
-    :  ^(WHILE loop_test WHILE_BODY loop_body);
+    :  ^(WHILE loop_test ^(PROGN loop_body));
 
 loop_test
 @init  { generate.loop().whileBeforeCondition(); }
@@ -71,11 +62,11 @@ loop_test
 
 loop_body
 @after { generate.loop().whileAfterBody(); }
-    :  atomic_operations_list;
+    :  atomic_operation+;
 
 variable_definition
 @init  { generate.misc().pushThis(); }
-    :  ^('=' type_declaration name=IDENTIFIER value=expression) {
+    :  ^('=' TYPE name=IDENTIFIER value=expression) {
             generate.misc().createVariable($name.text);
         };
 
@@ -89,8 +80,8 @@ expression
     : boolean_expression;
 
 boolean_expression
-    :  ^('&&' a=comparision_expression b=boolean_expression) { generate.bool().and(); }
-    |  ^('||' a=comparision_expression b=boolean_expression) { generate.bool().or(); }
+    :  ^('&&' a=comparision_expression b=boolean_expression)   { generate.bool().and(); }
+    |  ^('||' a=comparision_expression b=boolean_expression)   { generate.bool().or(); }
     |  comparision_expression;
 
 comparision_expression
@@ -114,33 +105,16 @@ arithmetic_expression
     ;
 
 return_expression
-    :  ^(RETURN expression) { generate.method().ret(); };
+    :  ^(RETURN expression)                                   { generate.method().ret(); };
 
 call
 @init { generate.method().prepareCall(); }
     :  ^(CALL IDENTIFIER call_arguments?)                     { generate.method().call($IDENTIFIER.text); };
 
 call_arguments
-scope {
-  ArrayList<ASTNode> arguments;
-}
+scope { ArrayList<ASTNode> arguments; }
 @init { $call_arguments::arguments = new ArrayList<ASTNode>(); }
     :  ^(CALL_ARGUMENTS argument*);
 
-argument: expression {
-          $call_arguments::arguments.add((ASTNode)$expression.start);
-        };
-
-number:           NUMBER;
-
-string:           STRING;
-
-identifier:       IDENTIFIER;
-
-method_name:      IDENTIFIER;
-
-type_declaration: TYPE;
-
-variable_name:    IDENTIFIER;
-
-newline:          NEWLINE;
+argument
+    : expression { $call_arguments::arguments.add((ASTNode)$expression.start); };
