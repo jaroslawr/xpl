@@ -14,7 +14,5 @@ public class ASTNode extends CommonTree {
   public  String getExpType()               { return expType; }
   public  void   setExpType(String expType) { this.expType = expType; }
 
-  public String toString() {
-    return "(" + super.toString() + " type: " + expType + ")";
-  }
+  public boolean hasElse = false;
 }

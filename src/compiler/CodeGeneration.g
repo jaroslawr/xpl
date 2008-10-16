@@ -39,18 +39,27 @@ scope {
 
 method_header
     :  ^(name=IDENTIFIER ((TYPE args+=IDENTIFIER)+)?) {
-          generate.usingFrameId($method_header.start.getFrameId());
-          generate.method().definition($name.text);
-          $method_definition::argumentCount = $args.size() + 1;
-};
+            generate.usingFrameId($method_header.start.getFrameId());
+            generate.method().definition($name.text);
+            $method_definition::argumentCount = $args.size() + 1;
+        };
 
 conditional
-@after { generate.conditional().ifAfterBody(); }
-    :  ^(IF conditional_test ^(PROGN atomic_operation+));
+    :  ^(IF conditional_test[$conditional.start.hasElse] conditional_true_branch[$conditional.start.hasElse] conditional_false_branch?) {
+            generate.conditional().ifAfterBody();
+        };
 
-conditional_test
-@after { generate.conditional().ifAfterCondition(); }
+conditional_test[boolean hasElse]
+@after { generate.conditional().ifAfterCondition(hasElse); }
     :  expression;
+
+conditional_true_branch[boolean hasElse]
+@after { if(hasElse) { generate.conditional().ifElseAfterTrueBranch();} }
+    :  ^(PROGN atomic_operation+);
+
+conditional_false_branch
+@init  { generate.conditional().ifElseBeforeFalseBranch(); }
+    :  ^(PROGN atomic_operation+);
 
 loop
     :  ^(WHILE loop_test ^(PROGN loop_body));

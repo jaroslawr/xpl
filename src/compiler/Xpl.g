@@ -35,7 +35,8 @@ call:                    IDENTIFIER '(' call_arguments? ')' -> ^(CALL IDENTIFIER
 
 call_arguments:          arguments+=expression (',' arguments+=expression)* -> ^(CALL_ARGUMENTS $arguments);
 
-conditional:             'if' expression atomic_operation+ 'end' -> ^(IF expression ^(PROGN atomic_operation+));
+conditional:             'if' expression (true_branch+=atomic_operation)+ ('else' (false_branch+=atomic_operation)+)? 'end' 
+                         -> ^(IF expression ^(PROGN $true_branch) ^(PROGN $false_branch)?);
 
 loop:                    'while' expression atomic_operation+ 'end' -> ^(WHILE expression ^(PROGN atomic_operation+));
 

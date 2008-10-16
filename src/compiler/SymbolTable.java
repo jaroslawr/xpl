@@ -5,7 +5,7 @@ import java.util.*;
 
 public class SymbolTable implements Opcodes {
   public SymbolTable() { enterNewFrame(); }
-  
+
   private ArrayList<Frame> frames = new ArrayList<Frame>();
   public int getCurrentFrameId() { return frames.size()-1; }
 

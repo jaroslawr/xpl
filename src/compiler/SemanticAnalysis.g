@@ -49,7 +49,7 @@ method_header
         };
 
 conditional
-    :  ^(IF expression ^(PROGN atomic_operation+));
+    :  ^(IF expression ^(PROGN atomic_operation+) (^(PROGN atomic_operation+) { $conditional.start.hasElse = true; })?);
 
 loop
     :  ^(WHILE expression ^(PROGN atomic_operation+));
