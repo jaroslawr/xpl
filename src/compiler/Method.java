@@ -1,13 +1,13 @@
 public class Method extends Symbol {
-  private static String type = "method";
-  public boolean isOfType(String type) { return super.isOfType(type) || this.type.equals(type); }
-
   private int arity;
   public  int getArity() { return arity; }
 
   private String signature;
 
-  public Method(String name, int arity) {
+  private Type type;
+
+  public Method(Type type, String name, int arity) {
+    this.type  = type;
     this.name  = name;
     this.arity = arity;
 

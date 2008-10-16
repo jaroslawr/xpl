@@ -13,7 +13,7 @@ public class CodeGeneratorMethod extends CodeGeneratorModule {
   }
 
   public void definition(String name) {
-    Method method = scope.findMethod(name);
+    Method method = symbolTable.findMethod(name);
     MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC, name, method.getSignature(), null, null);
     context.switchMethodVisitor(methodVisitor);
   }
@@ -22,11 +22,11 @@ public class CodeGeneratorMethod extends CodeGeneratorModule {
     currentMethod.visitInsn(IRETURN);
   }
 
-  public void finish() {
+  public void finish(int argumentsCount) {
     currentMethod.visitInsn(IRETURN);
-    currentMethod.visitMaxs(10, scope.getArgumentsCount());
+    currentMethod.visitMaxs(10, argumentsCount);
     context.leaveMethod();
-    context.switchScope(scope.getParentScope());
+    symbolTable.exitFrame();
   }
 
   public void prepareCall() {
@@ -40,7 +40,7 @@ public class CodeGeneratorMethod extends CodeGeneratorModule {
       currentMethod.visitInsn(POP);
     }
     else {
-      Method method = scope.findMethod(name);
+      Method method = symbolTable.findMethod(name);
       currentMethod.visitMethodInsn(INVOKEVIRTUAL, className, name, method.getSignature());
     }
   }

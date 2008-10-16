@@ -7,15 +7,20 @@ options {
 
 @members {
   private SymbolTable symbolTable = new SymbolTable();
+  public  SymbolTable getSymbolTable() { return symbolTable; }
 
   private ArrayList<String> errors = new ArrayList<String>();
   public ArrayList<String> getErrors() { return errors; }
+
+  private int localVariableId = 0;
 
   public void reportError(RecognitionException e) {}
 }
 
 program
-@init  { $program.start.scope = symbolTable.enterScope(); }
+@init  {
+    $program.start.setFrameId(symbolTable.getCurrentFrameId());
+}
 @after { if(!errors.isEmpty()) throw new SemanticAnalysisError(); }
     : ((method_definition | atomic_operation) newline?)+;
 catch [RecognitionException re] {
@@ -29,16 +34,21 @@ atomic_operations_list
     :  atomic_operation+;
 
 method_definition
-@after { symbolTable.exitScope(); }
+@after { symbolTable.exitFrame(); }
     :  ^(METHOD method_header METHOD_BODY method_body);
 
 method_header
     :  ^(name=IDENTIFIER ((type_declaration args+=IDENTIFIER)+)?) {
-          ArrayList<String> arguments = new ArrayList<String>();
-          for(Object tree : $args)
-            arguments.add(((ASTNode)tree).getText());
-          Scope scope = symbolTable.addMethod($name.text, arguments);
-          $method_header.start.scope = scope;
+            Type type = new Type("integer");
+            Method method = new Method(type, $name.text, $args.size());
+            symbolTable.put(method);
+            symbolTable.enterNewFrame();
+            for(int i = 0; i < $args.size(); i++) {
+                ASTNode node   = (ASTNode) $args.get(i);
+                String argName = node.getText();
+                symbolTable.put(new Argument(type, argName, i+1));
+            }
+            $method_header.start.setFrameId(symbolTable.getCurrentFrameId());
         };
 
 method_body
@@ -66,7 +76,8 @@ variable_definition
               errors.add("Line " + $name.line + ": declaring an already declared variable");
               throw new RecognitionException(input);
             }
-            symbolTable.addLocalVariable($name.text);
+            LocalVariable localVariable = new LocalVariable(new Type("integer"), $name.text, localVariableId++);
+            symbolTable.put(localVariable);
         };
 
 assignment
@@ -76,13 +87,11 @@ assignment
               errors.add("Line " + $name.line + ": using an undeclared variable");
               throw new RecognitionException(input);
           }
-          $assignment.start.type = $value.start.type;
+          $assignment.start.setExpType($value.start.getExpType());
         };
 
-type_declaration: 'int';
-
 expression
-@init { $expression.start.type = "integer"; }
+@init { $expression.start.setExpType("integer"); }
     : exp=boolean_expression;
 
 boolean_expression
@@ -124,14 +133,16 @@ call_arguments
 call_arguments_list
     :  expression*;
 
-number:         NUMBER { $number.start.type = "integer"; };
+number:           NUMBER { $number.start.setExpType("integer"); };
 
-string:         STRING { $string.start.type = "string"; };
+string:           STRING { $string.start.setExpType("string"); };
 
-identifier:     IDENTIFIER { $identifier.start.type = "integer"; };
+identifier:       IDENTIFIER { $identifier.start.setExpType("integer"); };
 
-method_name:    IDENTIFIER;
+method_name:      IDENTIFIER;
 
-variable_name:  IDENTIFIER;
+type_declaration: TYPE;
 
-newline:        NEWLINE;
+variable_name:    IDENTIFIER;
+
+newline:          NEWLINE;

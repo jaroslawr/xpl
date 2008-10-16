@@ -23,8 +23,8 @@ public class CodeGenerator implements Opcodes {
   private Output output;
   public  Output getOutput() { return output; }
 
-  public CodeGenerator(String filename) {
-    context       = contextBuilder.create(extractClassName(filename));
+  public CodeGenerator(SymbolTable symbolTable, String filename) {
+    context       = contextBuilder.create(symbolTable, extractClassName(filename));
 
     cgArithmetic  = new CodeGeneratorArithmetic(context);
     cgBoolean     = new CodeGeneratorBoolean(context);
@@ -36,8 +36,8 @@ public class CodeGenerator implements Opcodes {
     output        = new Output(context.getClassWriter(), filename);
   }
 
-  public void switchScope(Scope scope) {
-    context.switchScope(scope);
+  public void usingFrameId(int frameId) {
+    context.enterFrame(frameId);
   }
 
   private String extractClassName(String filename) {

@@ -18,21 +18,39 @@ public class XplCompiler {
 
   public void go() {
     try {
+      if(args.length != 2) {
+	System.out.println("Syntax: xpl [input file name] [output filename]");
+	return;
+      }
+
+      System.out.println("Compiling " + args[0] + "...");
+      System.out.println();
+
       parse(); semanticAnalysis(); codeGeneration();
 
-      System.out.println("Successfully compiled " + args[0]);
+      System.out.println("Compilations was successfull.");
+    }
+    catch(SyntacticAnalysisError e) {
+      System.out.println("Syntax errors: ");
+      System.out.println();
+      for(String error : parser.getErrors())
+	System.out.println(error);
+      System.out.println();
+      System.out.println("Compilation failed.");
     }
     catch(SemanticAnalysisError e) {
       System.out.println("Semantic errors: ");
       System.out.println();
       for(String error : semanticAnalysis.getErrors())
 	System.out.println(error);
+      System.out.println();
+      System.out.println("Compilation failed.");
     }
     catch(RecognitionException e)  {
-      System.out.println("Not a valid program");
+      System.out.println("Internal error, bailing out");
     }
     catch(IOException e) {
-      System.out.println("Input/output error");
+      System.out.println("Input/output error, compilation failed");
     }
   }
 
@@ -53,7 +71,7 @@ public class XplCompiler {
   }
 
   private void codeGeneration() throws RecognitionException {
-    codeGeneration = new CodeGeneration(nodes, args[1]);
+    codeGeneration = new CodeGeneration(nodes, semanticAnalysis.getSymbolTable(), args[1]);
     codeGeneration.program();
     nodes.reset();
   }

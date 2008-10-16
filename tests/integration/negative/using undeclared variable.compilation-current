@@ -1,3 +1,7 @@
+Compiling /home/sztywny/projects/xpl/tests/integration/negative/using undeclared variable.xpl...
+
 Semantic errors: 
 
 Line 5: using an undeclared variable
+
+Compilation failed.

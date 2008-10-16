@@ -6,7 +6,7 @@ public class CodeGeneratorModule implements Opcodes {
   protected Context       context;
   protected ClassWriter   classWriter;
   protected MethodVisitor currentMethod;
-  protected Scope         scope;
+  protected SymbolTable   symbolTable;
   protected String        className;
 
   public CodeGeneratorModule(Context context) {
@@ -23,7 +23,7 @@ public class CodeGeneratorModule implements Opcodes {
     this.currentMethod = currentMethod;
   }
 
-  public void scopeChanged(Scope scope) {
-    this.scope = scope;
+  public void symbolTableChanged(SymbolTable symbolTable) {
+    this.symbolTable = symbolTable;
   }
 }

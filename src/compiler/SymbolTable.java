@@ -4,47 +4,47 @@ import org.objectweb.asm.Opcodes;
 import java.util.*;
 
 public class SymbolTable implements Opcodes {
-  private Scope currentScope = null;
+  public SymbolTable() { enterNewFrame(); }
+  
+  private ArrayList<Frame> frames = new ArrayList<Frame>();
+  public int getCurrentFrameId() { return frames.size()-1; }
 
-  public Scope enterScope() {
-    currentScope = new Scope(currentScope);
-    return currentScope;
-  }
-
-  public Scope exitScope()  {
-    Scope scope  = currentScope;
-    currentScope = scope.getParentScope();
-    return scope;
-  }
-
-  public Scope addMethod(String name, ArrayList<String> args) {
-    currentScope.addMethod(name, args.size());
-    Scope scope = enterScope();
-    for(String arg : args) currentScope.addArgument(arg);
-    return scope;
-  }
-
-  public void addLocalVariable(String name) {
-    currentScope.addLocalVariable(name);
-  }
+  private Frame currentFrame = null;
 
   public Variable findVariable(String name) {
-    return currentScope.findVariable(name);
+    return currentFrame.find(name, Variable.class);
   }
 
   public Argument findArgument(String name) {
-    return currentScope.findArgument(name);
+    return currentFrame.find(name, Argument.class);
   }
 
   public LocalVariable findLocalVariable(String name) {
-    return currentScope.findLocalVariable(name);
+    return currentFrame.find(name, LocalVariable.class);
   }
 
   public Method findMethod(String name) {
-    return currentScope.findMethod(name);
+    return currentFrame.find(name, Method.class);
+  }
+
+  public void put(Symbol sym) {
+    currentFrame.put(sym.getName(), sym);
+  }
+
+  public void enterFrame(int id) {
+    currentFrame = frames.get(id);
+  }
+
+  public void enterNewFrame() {
+    currentFrame = new Frame(currentFrame);
+    frames.add(currentFrame);
+  }
+
+  public void exitFrame()  {
+    currentFrame = currentFrame.getParent();
   }
 
   public String toString() {
-    return currentScope.toString();
+    return currentFrame.toString();
   }
 }

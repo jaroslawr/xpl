@@ -5,7 +5,7 @@ import org.objectweb.asm.MethodVisitor;
 
 public class Context {
   private String        className;
-  private Scope         scope;
+  private SymbolTable   symbolTable;
   private ClassWriter   classWriter;
   public  ClassWriter   getClassWriter() { return classWriter; }
 
@@ -14,7 +14,8 @@ public class Context {
   private MethodVisitor runMethodVisitor;
   private MethodVisitor currentMethodVisitor;
 
-  public Context(String className, ClassWriter classWriter, MethodVisitor initMethodVisitor, MethodVisitor mainMethodVisitor, MethodVisitor runMethodVisitor) {
+  public Context(SymbolTable symbolTable, String className, ClassWriter classWriter, MethodVisitor initMethodVisitor, MethodVisitor mainMethodVisitor, MethodVisitor runMethodVisitor) {
+    this.symbolTable          = symbolTable;
     this.className            = className;
     this.classWriter          = classWriter;
     this.initMethodVisitor    = initMethodVisitor;
@@ -29,6 +30,7 @@ public class Context {
     observers.add(observer);
     observer.classChanged(className, classWriter);
     observer.currentMethodVisitorChanged(currentMethodVisitor);
+    observer.symbolTableChanged(symbolTable);
   }
 
   public void switchMethodVisitor(MethodVisitor methodVisitor) {
@@ -37,10 +39,8 @@ public class Context {
       observer.currentMethodVisitorChanged(currentMethodVisitor);
   }
 
-  public void switchScope(Scope scope) {
-    this.scope = scope;
-    for(CodeGeneratorModule observer : observers)
-      observer.scopeChanged(scope);
+  public void enterFrame(int frameId) {
+    symbolTable.enterFrame(frameId);
   }
 
   public void leaveMethod() {

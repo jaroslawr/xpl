@@ -1,4 +1,9 @@
 public abstract class Variable extends Symbol {
-  private static String type = "variable";
-  public boolean isOfType(String type) { return super.isOfType(type) || this.type.equals(type); }
+  private Type type;
+  public  Type getType() { return type; }
+
+  public Variable(Type type, String name) {
+    super(name);
+    this.type = type;
+  }
 }

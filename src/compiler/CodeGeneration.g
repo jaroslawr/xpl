@@ -7,16 +7,19 @@ options {
 
 @members {
   private CodeGenerator generate;
+  private SymbolTable symbolTable;
 
-  public CodeGeneration(TreeNodeStream input, String filename) {
+  public CodeGeneration(TreeNodeStream input, SymbolTable symbolTable, String filename) {
     this(input);
-    generate = new CodeGenerator(filename);
+
+    this.symbolTable = symbolTable;
+    this.generate    = new CodeGenerator(symbolTable, filename);
   }
 }
 
 program
 @init {
-    generate.switchScope($program.start.scope);
+    generate.usingFrameId($program.start.getFrameId());
 }
 @after {
     generate.misc().finish();
@@ -31,13 +34,17 @@ atomic_operations_list
     :  atomic_operation+;
 
 method_definition
-@after { generate.method().finish(); }
+scope {
+  int argumentCount;
+}
+@after { generate.method().finish($method_definition::argumentCount); }
     :  ^(METHOD method_header METHOD_BODY method_body);
 
 method_header
     :  ^(name=IDENTIFIER ((type_declaration args+=IDENTIFIER)+)?) {
-          generate.switchScope($method_header.start.scope);
+          generate.usingFrameId($method_header.start.getFrameId());
           generate.method().definition($name.text);
+          $method_definition::argumentCount = $args.size() + 1;
 };
 
 method_body
@@ -77,8 +84,6 @@ assignment
     :  ^('=' name=IDENTIFIER value=expression) {
             generate.misc().assignToVariable($name.text);
         };
-
-type_declaration: 'int';
 
 expression
     : boolean_expression;
@@ -126,14 +131,16 @@ argument: expression {
           $call_arguments::arguments.add((ASTNode)$expression.start);
         };
 
-number:         NUMBER;
+number:           NUMBER;
 
-string:         STRING;
+string:           STRING;
 
-identifier:     IDENTIFIER;
+identifier:       IDENTIFIER;
 
-method_name:    IDENTIFIER;
+method_name:      IDENTIFIER;
 
-variable_name:  IDENTIFIER;
+type_declaration: TYPE;
 
-newline:        NEWLINE;
+variable_name:    IDENTIFIER;
+
+newline:          NEWLINE;

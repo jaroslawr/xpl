@@ -4,7 +4,23 @@ options { output=AST; ASTLabelType=CommonTree; }
 
 tokens  { CALL; CALL_ARGUMENTS; WHILE; WHILE_BODY; IF; IF_BODY; ELSE; ELSE_BODY; METHOD; METHOD_BODY; RETURN; }
 
-program:                 ((method_definition | atomic_operation) newline?)+;
+@members {
+    private ArrayList<String> errors = new ArrayList<String>();
+    public  ArrayList<String> getErrors() { return errors; }
+
+    public void reportError(RecognitionException e) {
+        errors.add(getErrorHeader(e) + " " + getErrorMessage(e, getTokenNames()));
+
+        state.errorRecovery = true;
+    }
+}
+
+program
+@after { if(!errors.isEmpty()) throw new SyntacticAnalysisError(); }
+    :                    ((method_definition | atomic_operation) newline?)+;
+catch [RecognitionException re] {
+    throw re;
+}
 
 atomic_operation:        conditional | loop | assignment | variable_definition | expression | return_expression;
 
@@ -31,7 +47,7 @@ variable_declaration:    type_declaration identifier;
 
 variable_definition:     type_declaration identifier '=' expression -> ^('=' type_declaration identifier expression);
 
-type_declaration:        'int';
+type_declaration:        TYPE;
 
 assignment:              identifier '=' expression -> ^('=' identifier expression);
 
@@ -71,9 +87,11 @@ newline:                 NEWLINE;
 
 STRING:                  '\"' (options {greedy=false;}: ('A'..'z') | ' ')* '\"';
 
-IDENTIFIER:              ('a'..'z')+;
-
 NUMBER:    	             ('0'..'9')+;
+
+TYPE:                    'int' | 'string';
+
+IDENTIFIER:              ('a'..'z')+;
 
 NEWLINE:                 ('\n')+ { emit(); skip(); };
 

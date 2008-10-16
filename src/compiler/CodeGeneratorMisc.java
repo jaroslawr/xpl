@@ -14,24 +14,24 @@ public class CodeGeneratorMisc extends CodeGeneratorModule {
   };
 
   public void createVariable(String name) {
-    LocalVariable var = scope.findLocalVariable(name);
+    LocalVariable var = symbolTable.findLocalVariable(name);
     classWriter.visitField(ACC_PUBLIC, var.getVariableId(), "I", "", null);
     assignToVariable(name);
   }
 
   public void assignToVariable(String name) {
-    LocalVariable var = scope.findLocalVariable(name);
+    LocalVariable var = symbolTable.findLocalVariable(name);
     currentMethod.visitFieldInsn(PUTFIELD, className, var.getVariableId(), "I");
   }
 
   public void loadVariable(String name) {
-    Variable var = scope.findVariable(name);
+    Variable var = symbolTable.findVariable(name);
 
-    if(var.isOfType("argument")) {
+    if(var instanceof Argument) {
       Argument arg = (Argument) var;
       currentMethod.visitVarInsn(ILOAD, arg.getId());
     }
-    else if (var.isOfType("local-variable")) {
+    else if (var instanceof LocalVariable) {
       LocalVariable lVar = (LocalVariable) var;
       currentMethod.visitVarInsn(ALOAD, 0);
       currentMethod.visitFieldInsn(GETFIELD, className, lVar.getVariableId(), "I");
