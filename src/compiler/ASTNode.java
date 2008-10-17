@@ -4,9 +4,17 @@ import org.antlr.runtime.CommonToken;
 
 public class ASTNode extends CommonTree {
   public ASTNode(Token t)                   { super(t); }
-  public ASTNode(int ttype, String text)    { super(new CommonToken(ttype, text));	}
+  public ASTNode(int ttype, String text)    { super(new CommonToken(ttype, text)); }
 
-  private int frameId;
+  public ASTNode(ASTNode node) {
+    super(node.getToken());
+
+    this.expType = node.expType;
+    this.frameId = node.frameId;
+    this.hasElse = node.hasElse;
+  }
+
+  private int frameId = 13;
   public  int  getFrameId()                 { return this.frameId; }
   public  void setFrameId(int frameId)      { this.frameId = frameId; }
 

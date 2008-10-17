@@ -1,8 +1,8 @@
 grammar Xpl;
 
-options { output=AST; ASTLabelType=CommonTree; }
+options { output=AST; ASTLabelType=ASTNode; }
 
-tokens  { CALL; CALL_ARGUMENTS; WHILE; IF; METHOD; PROGN; RETURN; }
+tokens  { CALL; CALL_ARGUMENTS; WHILE; IF; METHOD; PROGN; RETURN; STRING_PLUS; TOSTRING; }
 
 @members {
     private ArrayList<String> errors = new ArrayList<String>();
@@ -48,13 +48,13 @@ assignment:              IDENTIFIER '='^ expression;
 
 expression:              boolean_expression;
 
-boolean_expression:      comparision_expression (('&&'^ | '||'^) boolean_expression)?;
+boolean_expression:      comparision_expression (('&&' | '||')^ boolean_expression)?;
 
-comparision_expression:  arithmetic_expression (('=='^ | '<='^ | '>='^ | '<'^ | '>'^) arithmetic_expression)?;
+comparision_expression:  arithmetic_expression (('==' | '<=' | '>=' | '<' | '>')^ arithmetic_expression)?;
 
-arithmetic_expression:   term (('+'^ | '-'^) term)*;
+arithmetic_expression:   term (('+' | '-')^ term)*;
 
-term:		             factor (('*'^ | '/'^) factor)*;
+term:		             factor (('*' | '/')^ factor)*;
 
 factor:                  atom ('%'^ atom)*;
 

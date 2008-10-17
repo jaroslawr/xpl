@@ -7,6 +7,10 @@ public class ASTNodeTreeAdaptor extends CommonTreeAdaptor {
   }
 
   public Object dupNode(Object t){
-    return t == null ? t : create(((ASTNode)t).token);
+    return t == null ? t : new ASTNode((ASTNode)t);
+  }
+
+  public Object getParent(Object t) {
+    return t == null ? t : ((Tree)t).getParent();
   }
 }

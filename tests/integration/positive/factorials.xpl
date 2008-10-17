@@ -13,4 +13,3 @@ while n <= 10
   print(factorial(n))
   n = n + 1
 end
-

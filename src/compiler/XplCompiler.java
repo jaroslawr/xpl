@@ -11,7 +11,8 @@ public class XplCompiler {
 
   private XplLexer lexer;
   private XplParser parser;
-  private CommonTree ast;
+  private ASTNode ast;
+  private CommonTokenStream tokens;
   private CommonTreeNodeStream nodes;
   private SemanticAnalysis semanticAnalysis;
   private CodeGeneration codeGeneration;
@@ -47,6 +48,7 @@ public class XplCompiler {
       System.out.println("Compilation failed.");
     }
     catch(RecognitionException e)  {
+      System.out.println(e);
       System.out.println("Internal error, bailing out");
     }
     catch(IOException e) {
@@ -56,23 +58,28 @@ public class XplCompiler {
 
   private void parse() throws IOException, RecognitionException {
     lexer  = new XplLexer(new ANTLRInputStream(new FileInputStream(args[0])));
-    parser = new XplParser(new CommonTokenStream(lexer));
+    tokens = new CommonTokenStream(lexer);
+    parser = new XplParser(tokens);
 
     parser.setTreeAdaptor(adaptor);
 
-    ast    = (CommonTree) parser.program().getTree();
-    nodes  = new CommonTreeNodeStream(ast);
+    ast    = (ASTNode) parser.program().getTree();
+    nodes  = new CommonTreeNodeStream((CommonTree) ast);
+    nodes.setTokenStream(tokens);
   }
 
   private void semanticAnalysis() throws RecognitionException {
     semanticAnalysis = new SemanticAnalysis(nodes);
+    semanticAnalysis.setTreeAdaptor(adaptor);
     semanticAnalysis.program();
+
     nodes.reset();
+
+    System.out.println(ast.toStringTree());
   }
 
   private void codeGeneration() throws RecognitionException {
     codeGeneration = new CodeGeneration(nodes, semanticAnalysis.getSymbolTable(), args[1]);
     codeGeneration.program();
-    nodes.reset();
   }
 }

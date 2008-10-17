@@ -3,6 +3,8 @@ tree grammar SemanticAnalysis;
 options {
     tokenVocab=Xpl;
     ASTLabelType=ASTNode;
+    output=AST;
+    rewrite=true;
 }
 
 @members {
@@ -10,7 +12,7 @@ options {
   public  SymbolTable getSymbolTable() { return symbolTable; }
 
   private ArrayList<String> errors = new ArrayList<String>();
-  public ArrayList<String> getErrors() { return errors; }
+  public  ArrayList<String> getErrors() { return errors; }
 
   private int localVariableId = 0;
 
@@ -28,7 +30,7 @@ catch [RecognitionException re] {
 }
 
 atomic_operation
-    :  conditional | loop | variable_definition | assignment | expression | return_expression;
+    :  (conditional | loop | variable_definition | assignment | expression | return_expression);
 
 method_definition
 @after { symbolTable.exitFrame(); }
@@ -80,38 +82,28 @@ expression
     : exp=boolean_expression;
 
 boolean_expression
-    :  ^(boolean_op a=comparision_expression b=boolean_expression)
+    :  ^(('&&' | '||') a=comparision_expression b=boolean_expression)
     |  comparision_expression
     ;
 
-boolean_op
-    : '&&' | '||';
-
 comparision_expression
-    :  ^(comparision_op a=arithmetic_expression b=arithmetic_expression)
+    :  ^(('==' | '<=' | '>=' | '<' | '>') a=arithmetic_expression b=arithmetic_expression)
     |  arithmetic_expression
     ;
 
-comparision_op
-    : '==' | '<=' | '>=' | '<' | '>';
-
 arithmetic_expression
-    :  ^(arithmetic_op a=arithmetic_expression b=arithmetic_expression)
-    |  NUMBER
-    |  STRING
-    |  IDENTIFIER
+    :  ^(('-' | '*' | '/' | '%') a=arithmetic_expression b=arithmetic_expression)
+    |  ^('+' a=arithmetic_expression b=arithmetic_expression)
+        -> {$a.start.getExpType() != "string" && $b.start.getExpType() == "string"}? ^(STRING_PLUS ^(TOSTRING $a) $b)
+        -> {$a.start.getExpType() == "string" && $b.start.getExpType() != "string"}? ^(STRING_PLUS $a ^(TOSTRING $b))
+        -> {$a.start.getExpType() == "string" && $b.start.getExpType() == "string"}? ^(STRING_PLUS $a $b)
+        -> ^('+' $b $a)
+    |  NUMBER     { $NUMBER.setExpType("integer"); }
+    |  STRING     { $STRING.setExpType("string"); }
+    |  IDENTIFIER { $IDENTIFIER.setExpType("integer"); }
     |  call
     ;
-
-arithmetic_op
-    : '+' | '-' | '*' | '/' | '%';
 
 return_expression: ^(RETURN expression);
 
 call:              ^(CALL IDENTIFIER ^(CALL_ARGUMENTS expression+));
-
-number:            NUMBER     { $number.start.setExpType("integer"); };
-
-string:            STRING     { $string.start.setExpType("string"); };
-
-reference:         IDENTIFIER { $IDENTIFIER.setExpType("integer"); };
