@@ -13,4 +13,8 @@ public class ASTNodeTreeAdaptor extends CommonTreeAdaptor {
   public Object getParent(Object t) {
     return t == null ? t : ((Tree)t).getParent();
   }
+
+  public Object errorNode(TokenStream input, Token start, Token stop, RecognitionException e) {
+    return new ASTErrorNode(input, start, stop, e);
+  }
 }

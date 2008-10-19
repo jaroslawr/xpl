@@ -5,6 +5,7 @@ options {
     ASTLabelType=ASTNode;
     output=AST;
     rewrite=true;
+    backtrack=true;
 }
 
 @members {
@@ -17,12 +18,17 @@ options {
   private int localVariableId = 0;
 
   public void reportError(RecognitionException e) {}
+
+  public boolean containsString(List<ASTNode> astNodes) {
+      for(ASTNode node : astNodes)
+          if(node.getExpType() == "string")
+             return true;
+      return false;
+  }
 }
 
 program
-@init  {
-    $program.start.setFrameId(symbolTable.getCurrentFrameId());
-}
+@init  { $program.start.setFrameId(symbolTable.getCurrentFrameId()); }
 @after { if(!errors.isEmpty()) throw new SemanticAnalysisError(); }
     : (method_definition | atomic_operation)+;
 catch [RecognitionException re] {
@@ -87,21 +93,57 @@ boolean_expression
     ;
 
 comparision_expression
-    :  ^(('==' | '<=' | '>=' | '<' | '>') a=arithmetic_expression b=arithmetic_expression)
-    |  arithmetic_expression
+    :  ^(('==' | '<=' | '>=' | '<' | '>') a=binary_expression b=binary_expression)
+    |  binary_expression
+    |  addition
     ;
 
-arithmetic_expression
-    :  ^(('-' | '*' | '/' | '%') a=arithmetic_expression b=arithmetic_expression)
-    |  ^('+' a=arithmetic_expression b=arithmetic_expression)
-        -> {$a.start.getExpType() != "string" && $b.start.getExpType() == "string"}? ^(STRING_PLUS ^(TOSTRING $a) $b)
-        -> {$a.start.getExpType() == "string" && $b.start.getExpType() != "string"}? ^(STRING_PLUS $a ^(TOSTRING $b))
-        -> {$a.start.getExpType() == "string" && $b.start.getExpType() == "string"}? ^(STRING_PLUS $a $b)
-        -> ^('+' $b $a)
-    |  NUMBER     { $NUMBER.setExpType("integer"); }
+binary_expression
+    :  ^(('-' | '*' | '/' | '%') a=binary_expression b=binary_expression) {
+            if($a.start.getExpType() == "string" || $b.start.getExpType() == "string")
+                $start.setExpType("string");
+            else
+                $start.setExpType("integer");
+        }
+    | '(' binary_expression ')'
+    | atom
+    ;
+
+atom
+    :  NUMBER     { $NUMBER.setExpType("integer"); }
     |  STRING     { $STRING.setExpType("string"); }
     |  IDENTIFIER { $IDENTIFIER.setExpType("integer"); }
     |  call
+    ;
+
+addition
+    :  ^('+' string_plus_fold exp=binary_expression)
+       -> { $string_plus_fold.start.getExpType() == "string" || $exp.start.getExpType() == "string" }?
+          ^(STRING_PLUS string_plus_fold $exp)
+       -> ^('+' string_plus_fold $exp)
+    | string_plus_fold
+    ;
+
+string_plus_fold
+    :  ^('+' (exps+=binary_expression)+)
+        {
+            if(containsString($exps))
+                $start.setExpType("string");
+            else
+                $start.setExpType("integer");
+        }
+        -> {$start.getExpType() == "string"}? binary_expression+
+        ->                                   ^('+' binary_expression+)
+    |  ^('+' rest=string_plus_fold exp=binary_expression)
+        {
+            if($rest.start.getExpType() == "string" || $exp.start.getExpType() == "string")
+                $start.setExpType("string");
+            else
+                $start.setExpType("integer");
+        }
+        -> {$start.getExpType() == "string"}?   $rest $exp
+        ->                                      ^('+' $rest $exp)
+    |  atom
     ;
 
 return_expression: ^(RETURN expression);

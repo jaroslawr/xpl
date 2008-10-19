@@ -35,7 +35,7 @@ call:                    IDENTIFIER '(' call_arguments? ')' -> ^(CALL IDENTIFIER
 
 call_arguments:          arguments+=expression (',' arguments+=expression)* -> ^(CALL_ARGUMENTS $arguments);
 
-conditional:             'if' expression (true_branch+=atomic_operation)+ ('else' (false_branch+=atomic_operation)+)? 'end' 
+conditional:             'if' expression (true_branch+=atomic_operation)+ ('else' (false_branch+=atomic_operation)+)? 'end'
                          -> ^(IF expression ^(PROGN $true_branch) ^(PROGN $false_branch)?);
 
 loop:                    'while' expression atomic_operation+ 'end' -> ^(WHILE expression ^(PROGN atomic_operation+));
@@ -50,15 +50,15 @@ expression:              boolean_expression;
 
 boolean_expression:      comparision_expression (('&&' | '||')^ boolean_expression)?;
 
-comparision_expression:  arithmetic_expression (('==' | '<=' | '>=' | '<' | '>')^ arithmetic_expression)?;
+comparision_expression:  binary_expression (('==' | '<=' | '>=' | '<' | '>')^ binary_expression)?;
 
-arithmetic_expression:   term (('+' | '-')^ term)*;
+binary_expression:       term (('+' | '-')^ term)*;
 
 term:		             factor (('*' | '/')^ factor)*;
 
 factor:                  atom ('%'^ atom)*;
 
-atom:                    NUMBER | STRING | (IDENTIFIER '(') => call | '(' expression ')' | IDENTIFIER;
+atom:                    NUMBER | STRING | (IDENTIFIER '(') => call | '('! expression ')'! | IDENTIFIER;
 
 STRING:                  '\"' (options {greedy=false;}: ('A'..'z') | ' ')* '\"';
 

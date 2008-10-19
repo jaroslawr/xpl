@@ -57,7 +57,7 @@
   </target>
 
   <target name="compile" depends="compile-grammars" description="compile the source">
-    <javac srcdir="${src-compiler}" destdir="${classes-compiler}"/>
+    <javac srcdir="${src-compiler}" destdir="${classes-compiler}" debug="true"/>
     <javac srcdir="${src-runtime}"  destdir="${classes-runtime}"/>
 
     <javac srcdir="${tests-unit}"   destdir="${classes-tests}">
@@ -124,12 +124,12 @@
       <sequential>
         <basename property="@{file}-test-name" file="@{file}" suffix=".xpl" />
 
-        <java jar="${bin}/xpl.jar" fork="true" output="${tests-integration-pos}/${@{file}-test-name}.compilation">
+        <java jar="${bin}/xpl.jar" fork="true" output="${tests-integration-pos}/${@{file}-test-name}.compilation" failonerror="true">
           <arg value="@{file}" />
           <arg value="${tests-integration-pos}/${@{file}-test-name}.class" />
         </java>
 
-        <java classpath="${tests-integration-pos}:${classes-runtime}" classname="${@{file}-test-name}" fork="true" output="${tests-integration-pos}/${@{file}-test-name}.output-current" />
+        <java classpath="${tests-integration-pos}:${classes-runtime}" classname="${@{file}-test-name}" fork="true" output="${tests-integration-pos}/${@{file}-test-name}.output-current" outputproperty="run-failure" />
 
         <exec executable="diff" output="${tests-integration-pos}/${@{file}-test-name}.output-diff">
           <arg value="${tests-integration-pos}/${@{file}-test-name}.output-desired"/>

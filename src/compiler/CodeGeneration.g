@@ -31,17 +31,14 @@ atomic_operation
     :  conditional | loop | assignment | variable_definition | expression | return_expression;
 
 method_definition
-scope {
-  int argumentCount;
-}
-@after { generate.method().finish($method_definition::argumentCount); }
-    :  ^(METHOD method_header ^(PROGN atomic_operation+));
+@after { generate.method().finish($header.argumentsCount); }
+    :  ^(METHOD header=method_header ^(PROGN atomic_operation+));
 
-method_header
+method_header returns [int argumentsCount]
     :  ^(name=IDENTIFIER ((TYPE args+=IDENTIFIER)+)?) {
             generate.usingFrameId($method_header.start.getFrameId());
             generate.method().definition($name.text);
-            $method_definition::argumentCount = $args.size() + 1;
+            {$argumentsCount = $args.size() + 1;}
         };
 
 conditional
@@ -89,36 +86,50 @@ expression
     : boolean_expression;
 
 boolean_expression
-    :  ^('&&' a=comparision_expression b=boolean_expression)   { generate.bool().and(); }
-    |  ^('||' a=comparision_expression b=boolean_expression)   { generate.bool().or(); }
+    :  ^('&&' a=comparision_expression b=boolean_expression) { generate.bool().and(); }
+    |  ^('||' a=comparision_expression b=boolean_expression) { generate.bool().or(); }
     |  comparision_expression;
 
 comparision_expression
-    :  ^('==' a=arithmetic_expression b=arithmetic_expression) { generate.bool().equal(); }
-    |  ^('<=' a=arithmetic_expression b=arithmetic_expression) { generate.bool().lessThanOrEqual(); }
-    |  ^('>=' a=arithmetic_expression b=arithmetic_expression) { generate.bool().greaterThanOrEqual(); }
-    |  ^('<'  a=arithmetic_expression b=arithmetic_expression) { generate.bool().lessThan(); }
-    |  ^('>'  a=arithmetic_expression b=arithmetic_expression) { generate.bool().greaterThan(); }
-    |  arithmetic_expression;
+    :  ^('==' a=binary_expression b=binary_expression) { generate.bool().equal(); }
+    |  ^('<=' a=binary_expression b=binary_expression) { generate.bool().lessThanOrEqual(); }
+    |  ^('>=' a=binary_expression b=binary_expression) { generate.bool().greaterThanOrEqual(); }
+    |  ^('<'  a=binary_expression b=binary_expression) { generate.bool().lessThan(); }
+    |  ^('>'  a=binary_expression b=binary_expression) { generate.bool().greaterThan(); }
+    |  binary_expression;
 
-arithmetic_expression
-    :  ^('+' a=arithmetic_expression b=arithmetic_expression) { generate.arithmetic().add(); }
-    |  ^('-' a=arithmetic_expression b=arithmetic_expression) { generate.arithmetic().subtract(); }
-    |  ^('*' a=arithmetic_expression b=arithmetic_expression) { generate.arithmetic().multiply(); }
-    |  ^('/' a=arithmetic_expression b=arithmetic_expression) { generate.arithmetic().divide(); }
-    |  ^('%' a=arithmetic_expression b=arithmetic_expression) { generate.arithmetic().mod(); }
-    |  NUMBER                                                 { generate.misc().load(Integer.parseInt($NUMBER.text)); }
-    |  IDENTIFIER                                             { generate.misc().loadVariable($IDENTIFIER.text); }
+binary_expression
+    :  ^('+' a=binary_expression b=binary_expression) { generate.arithmetic().add(); }
+    |  ^('-' a=binary_expression b=binary_expression) { generate.arithmetic().subtract(); }
+    |  ^('*' a=binary_expression b=binary_expression) { generate.arithmetic().multiply(); }
+    |  ^('/' a=binary_expression b=binary_expression) { generate.arithmetic().divide(); }
+    |  ^('%' a=binary_expression b=binary_expression) { generate.arithmetic().mod(); }
+    |  string_concatenation
+    |  atom
+    ;
+
+string_concatenation
+@init { generate.string().builder(); }
+    :  ^(STRING_PLUS string_concatenation_arg+);
+
+string_concatenation_arg
+    :  binary_expression {
+            if($start.getExpType() == "string")
+                generate.string().appendString();
+            else
+                generate.string().appendInteger();
+        };
+
+atom
+    :  NUMBER     { generate.misc().load(Integer.parseInt($NUMBER.text)); }
+    |  IDENTIFIER { generate.misc().loadVariable($IDENTIFIER.text); }
     |  STRING
     |  call
     ;
 
-return_expression
-    :  ^(RETURN expression)                                   { generate.method().ret(); };
-
 call
 @init { generate.method().prepareCall(); }
-    :  ^(CALL IDENTIFIER call_arguments?)                     { generate.method().call($IDENTIFIER.text); };
+    :  ^(CALL IDENTIFIER call_arguments?) { generate.method().call($IDENTIFIER.text); };
 
 call_arguments
 scope { ArrayList<ASTNode> arguments; }
@@ -127,3 +138,6 @@ scope { ArrayList<ASTNode> arguments; }
 
 argument
     : expression { $call_arguments::arguments.add((ASTNode)$expression.start); };
+
+return_expression
+    :  ^(RETURN expression) { generate.method().ret(); };
