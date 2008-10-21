@@ -4,6 +4,7 @@ import org.objectweb.asm.MethodVisitor;
 
 public class CodeGeneratorMethod extends CodeGeneratorModule {
   private Hashtable<String, String> builtinMethods = new Hashtable<String, String>() {{
+      put("puts", "(Ljava/lang/String;)V");
       put("print", "(I)V");
       put("power", "(II)I");
     }};

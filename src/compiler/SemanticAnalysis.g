@@ -19,10 +19,36 @@ options {
 
   public void reportError(RecognitionException e) {}
 
-  public boolean containsString(List<ASTNode> astNodes) {
+  private void error(TreeNodeStream input, int line, String message) throws RecognitionException {
+      errors.add("Line " + line + ": " + message);
+      throw new RecognitionException(input);
+  }
+
+  private void deduceType(ASTNode deduced, ASTNode a, ASTNode b) {
+      if(a.getExpType() == "string" || b.getExpType() == "string")
+          deduced.setExpType("string");
+      else
+          deduced.setExpType("integer");
+  }
+
+  private void deduceType(ASTNode deduced, List<ASTNode> list) {
+      if(containsString(list))
+          deduced.setExpType("string");
+      else
+          deduced.setExpType("integer");
+  }
+
+  private void deduceType(ASTNode deduced, ASTNode node, List<ASTNode> list) {
+      if(node.getExpType() == "string" || containsString(list))
+          deduced.setExpType("string");
+      else
+          deduced.setExpType("integer");
+  }
+
+  private boolean containsString(List<ASTNode> astNodes) {
       for(ASTNode node : astNodes)
           if(node.getExpType() == "string")
-             return true;
+              return true;
       return false;
   }
 }
@@ -65,46 +91,37 @@ loop
 variable_definition
     :  ^('=' TYPE name=IDENTIFIER value=expression) {
             LocalVariable var = symbolTable.findLocalVariable($name.text);
-            if(var != null) {
-              errors.add("Line " + $name.line + ": declaring an already declared variable");
-              throw new RecognitionException(input);
-            }
-            LocalVariable localVariable = new LocalVariable(new Type("integer"), $name.text, localVariableId++);
+            if(var != null)
+              error(input, $name.line, "declaring an already declared variable");
+            Type type = new Type($value.start.getExpType());
+            LocalVariable localVariable = new LocalVariable(type, $name.text, localVariableId++);
             symbolTable.put(localVariable);
         };
 
 assignment
     :  ^('=' name=IDENTIFIER value=expression) {
           LocalVariable var = symbolTable.findLocalVariable($name.text);
-          if(var == null) {
-              errors.add("Line " + $name.line + ": using an undeclared variable");
-              throw new RecognitionException(input);
-          }
-          $assignment.start.setExpType($value.start.getExpType());
+          if(var == null)
+            error(input, $name.line, "using an undeclared variable");
+          $start.setExpType($value.start.getExpType());
         };
 
 expression
-@init { $expression.start.setExpType("integer"); }
-    : exp=boolean_expression;
+    : boolean_expression { $start.setExpType($boolean_expression.start.getExpType()); };
 
 boolean_expression
     :  ^(('&&' | '||') a=comparision_expression b=boolean_expression)
-    |  comparision_expression
+    |  comparision_expression { $start.setExpType($comparision_expression.start.getExpType()); }
     ;
 
 comparision_expression
     :  ^(('==' | '<=' | '>=' | '<' | '>') a=binary_expression b=binary_expression)
-    |  binary_expression
-    |  addition
+    |  binary_expression { $start.setExpType("integer"); }
+    |  addition          { $start.setExpType($addition.start.getExpType()); }
     ;
 
 binary_expression
-    :  ^(('-' | '*' | '/' | '%') a=binary_expression b=binary_expression) {
-            if($a.start.getExpType() == "string" || $b.start.getExpType() == "string")
-                $start.setExpType("string");
-            else
-                $start.setExpType("integer");
-        }
+    :  ^(('-' | '*' | '/' | '%') a=binary_expression b=binary_expression) { deduceType($start, $a.start, $b.start); }
     | '(' binary_expression ')'
     | atom
     ;
@@ -117,33 +134,20 @@ atom
     ;
 
 addition
-    :  ^('+' string_plus_fold exp=binary_expression)
-       -> { $string_plus_fold.start.getExpType() == "string" || $exp.start.getExpType() == "string" }?
-          ^(STRING_PLUS string_plus_fold $exp)
-       -> ^('+' string_plus_fold $exp)
-    | string_plus_fold
+    :  ^('+' string_plus_fold binary_expression) { deduceType($start, $string_plus_fold.start, $binary_expression.start); }
+       -> { $start.getExpType() == "string" }? ^(STRING_PLUS string_plus_fold binary_expression)
+       ->                                      ^('+' string_plus_fold binary_expression)
+    | string_plus_fold                           { $start.setExpType($string_plus_fold.start.getExpType()); }
     ;
 
 string_plus_fold
-    :  ^('+' (exps+=binary_expression)+)
-        {
-            if(containsString($exps))
-                $start.setExpType("string");
-            else
-                $start.setExpType("integer");
-        }
+    :  ^('+' (exps+=binary_expression)+) { deduceType($start, $exps); }
         -> {$start.getExpType() == "string"}? binary_expression+
-        ->                                   ^('+' binary_expression+)
-    |  ^('+' rest=string_plus_fold exp=binary_expression)
-        {
-            if($rest.start.getExpType() == "string" || $exp.start.getExpType() == "string")
-                $start.setExpType("string");
-            else
-                $start.setExpType("integer");
-        }
+        -> ^('+' binary_expression+)
+    |  ^('+' rest=string_plus_fold exp=binary_expression) { deduceType($start, $rest.start, $exp.start); }
         -> {$start.getExpType() == "string"}?   $rest $exp
-        ->                                      ^('+' $rest $exp)
-    |  atom
+        -> ^('+' $rest $exp)
+    |  atom { $start.setExpType($atom.start.getExpType()); }
     ;
 
 return_expression: ^(RETURN expression);

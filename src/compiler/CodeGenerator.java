@@ -9,6 +9,7 @@ public class CodeGenerator implements Opcodes {
   private CodeGeneratorLoop        cgLoop;
   private CodeGeneratorMethod      cgMethod;
   private CodeGeneratorMisc        cgMisc;
+  private CodeGeneratorString      cgString;
 
   public CodeGeneratorArithmetic   arithmetic()  { return cgArithmetic; }
   public CodeGeneratorBoolean      bool()        { return cgBoolean; }
@@ -16,6 +17,7 @@ public class CodeGenerator implements Opcodes {
   public CodeGeneratorLoop         loop()        { return cgLoop; }
   public CodeGeneratorMethod       method()      { return cgMethod; }
   public CodeGeneratorMisc         misc()        { return cgMisc; }
+  public CodeGeneratorString       string()      { return cgString; }
 
   private Context context;
   private ContextBuilder contextBuilder = new ContextBuilder();
@@ -32,6 +34,7 @@ public class CodeGenerator implements Opcodes {
     cgLoop        = new CodeGeneratorLoop(context);
     cgMethod      = new CodeGeneratorMethod(context);
     cgMisc        = new CodeGeneratorMisc(context);
+    cgString      = new CodeGeneratorString(context);
 
     output        = new Output(context.getClassWriter(), filename);
   }

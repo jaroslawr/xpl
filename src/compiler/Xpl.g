@@ -60,7 +60,7 @@ factor:                  atom ('%'^ atom)*;
 
 atom:                    NUMBER | STRING | (IDENTIFIER '(') => call | '('! expression ')'! | IDENTIFIER;
 
-STRING:                  '\"' (options {greedy=false;}: ('A'..'z') | ' ')* '\"';
+STRING:                  '\"' (options {greedy=false;}: ('A'..'z') | ' ' | '(' | ')' | ':' | '-')* '\"';
 
 NUMBER:    	             ('0'..'9')+;
 

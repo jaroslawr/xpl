@@ -15,6 +15,10 @@ options {
     this.symbolTable = symbolTable;
     this.generate    = new CodeGenerator(symbolTable, filename);
   }
+
+  public String strip(String literal) {
+      return literal.substring(1, literal.length() - 1);
+  }
 }
 
 program
@@ -109,7 +113,8 @@ binary_expression
     ;
 
 string_concatenation
-@init { generate.string().builder(); }
+@init  { generate.string().builder(); }
+@after { generate.string().finish(); }
     :  ^(STRING_PLUS string_concatenation_arg+);
 
 string_concatenation_arg
@@ -123,7 +128,7 @@ string_concatenation_arg
 atom
     :  NUMBER     { generate.misc().load(Integer.parseInt($NUMBER.text)); }
     |  IDENTIFIER { generate.misc().loadVariable($IDENTIFIER.text); }
-    |  STRING
+    |  STRING     { generate.string().load(strip($STRING.text)); }
     |  call
     ;
 

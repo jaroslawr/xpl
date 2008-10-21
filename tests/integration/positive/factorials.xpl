@@ -8,8 +8,11 @@ method factorial(int n)
   result
 end
 
+puts("Factorials")
+puts("-------------------------------")
+
 int n = 1
-while n <= 10
-  print(factorial(n))
+while n < 10
+  puts("factorial(" + n + "): " + factorial(n))
   n = n + 1
 end

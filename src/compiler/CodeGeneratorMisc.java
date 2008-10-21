@@ -15,13 +15,13 @@ public class CodeGeneratorMisc extends CodeGeneratorModule {
 
   public void createVariable(String name) {
     LocalVariable var = symbolTable.findLocalVariable(name);
-    classWriter.visitField(ACC_PUBLIC, var.getVariableId(), "I", "", null);
+    classWriter.visitField(ACC_PUBLIC, var.getVariableId(), var.typeSignature(), "", null);
     assignToVariable(name);
   }
 
   public void assignToVariable(String name) {
     LocalVariable var = symbolTable.findLocalVariable(name);
-    currentMethod.visitFieldInsn(PUTFIELD, className, var.getVariableId(), "I");
+    currentMethod.visitFieldInsn(PUTFIELD, className, var.getVariableId(), var.typeSignature());
   }
 
   public void loadVariable(String name) {
@@ -34,7 +34,7 @@ public class CodeGeneratorMisc extends CodeGeneratorModule {
     else if (var instanceof LocalVariable) {
       LocalVariable lVar = (LocalVariable) var;
       currentMethod.visitVarInsn(ALOAD, 0);
-      currentMethod.visitFieldInsn(GETFIELD, className, lVar.getVariableId(), "I");
+      currentMethod.visitFieldInsn(GETFIELD, className, lVar.getVariableId(), lVar.typeSignature());
     }
   }
 
