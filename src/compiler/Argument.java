@@ -1,4 +1,4 @@
-public class Argument extends Variable {
+public class Argument extends Identifier {
   private int id;
   public  int getId() { return id; }
 

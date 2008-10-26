@@ -6,7 +6,7 @@ public class SymbolTableTest {
   public void storesArguments() {
     SymbolTable table = new SymbolTable();
 
-    Argument argument = new Argument(new Type("integer"), "foobar", 1);
+    Argument argument = new Argument(Types.Integer, "foobar", 1);
     table.put(argument);
 
     Argument found = table.findArgument("foobar");
@@ -17,18 +17,18 @@ public class SymbolTableTest {
   public void storesLocalVariables() {
     SymbolTable table = new SymbolTable();
 
-    LocalVariable localVariable = new LocalVariable(new Type("integer"), "foobar", 0);
-    table.put(localVariable);
+    Variable variable = new Variable(Types.Integer, "foobar", 0);
+    table.put(variable);
 
-    LocalVariable found = table.findLocalVariable("foobar");
-    assertEquals(localVariable, found);
+    Variable found = table.findVariable("foobar");
+    assertEquals(variable, found);
   }
 
   @Test
   public void storesMethods() {
     SymbolTable table = new SymbolTable();
 
-    Method method = new Method(new Type("integer"), "foobar", 3);
+    Method method = new Method(Types.Integer, "foobar", 3);
     table.put(method);
 
     Method found = table.findMethod("foobar");
@@ -37,13 +37,13 @@ public class SymbolTableTest {
 
   @Test
   public void ignoresItemsOfDifferentTypeWhenLookingUpSymbols() {
-    SymbolTable   table          = new SymbolTable();
-    Method        method         = new Method(new Type("integer"), "foobar", 3);
-    LocalVariable localVariable  = new LocalVariable(new Type("integer"), "foobar", 0);
+    SymbolTable   table    = new SymbolTable();
+    Method        method   = new Method(Types.Integer, "foobar", 3);
+    Variable      variable = new Variable(Types.Integer, "foobar", 0);
 
     table.put(method);
     table.enterNewFrame();
-    table.put(localVariable);
+    table.put(variable);
 
     Method found = table.findMethod("foobar");
     assertEquals(method, found);

@@ -14,27 +14,27 @@ public class CodeGeneratorMisc extends CodeGeneratorModule {
   };
 
   public void createVariable(String name) {
-    LocalVariable var = symbolTable.findLocalVariable(name);
+    Variable var = symbolTable.findVariable(name);
     classWriter.visitField(ACC_PUBLIC, var.getVariableId(), var.typeSignature(), "", null);
     assignToVariable(name);
   }
 
   public void assignToVariable(String name) {
-    LocalVariable var = symbolTable.findLocalVariable(name);
+    Variable var = symbolTable.findVariable(name);
     currentMethod.visitFieldInsn(PUTFIELD, className, var.getVariableId(), var.typeSignature());
   }
 
   public void loadVariable(String name) {
-    Variable var = symbolTable.findVariable(name);
+    Identifier identifier = symbolTable.findIdentifier(name);
 
-    if(var instanceof Argument) {
-      Argument arg = (Argument) var;
+    if(identifier instanceof Argument) {
+      Argument arg = (Argument) identifier;
       currentMethod.visitVarInsn(ILOAD, arg.getId());
     }
-    else if (var instanceof LocalVariable) {
-      LocalVariable lVar = (LocalVariable) var;
+    else if (identifier instanceof Variable) {
+      Variable var = (Variable) identifier;
       currentMethod.visitVarInsn(ALOAD, 0);
-      currentMethod.visitFieldInsn(GETFIELD, className, lVar.getVariableId(), lVar.typeSignature());
+      currentMethod.visitFieldInsn(GETFIELD, className, var.getVariableId(), var.typeSignature());
     }
   }
 

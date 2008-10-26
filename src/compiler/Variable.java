@@ -1,11 +1,11 @@
-public abstract class Variable extends Symbol {
-  private Type type;
-  public  Type getType() { return type; }
+public class Variable extends Identifier {
+  public Variable(Type type, String name, int id) {
+    super(type, name);
+    this.variableId = "variable" + id;
+  }
 
-  public  String typeSignature() { return type.signature(); }
-
-  public Variable(Type type, String name) {
-    super(name);
-    this.type = type;
+  private String variableId;
+  public String getVariableId()  {
+    return variableId;
   }
 }

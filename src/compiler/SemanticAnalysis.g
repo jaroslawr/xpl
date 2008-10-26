@@ -15,7 +15,7 @@ options {
     private ArrayList<String> errors = new ArrayList<String>();
     public  ArrayList<String> getErrors() { return errors; }
 
-    private int localVariableId = 0;
+    private int variableId = 0;
 
     public void reportError(RecognitionException e) {}
 
@@ -89,17 +89,17 @@ loop
 
 variable_definition
     :  ^('=' TYPE name=IDENTIFIER value=expression) {
-            LocalVariable var = symbolTable.findLocalVariable($name.text);
+            Variable var = symbolTable.findVariable($name.text);
             if(var != null)
               error(input, $name.line, "declaring an already declared variable");
             Type type = $value.start.getNodeType();
-            LocalVariable localVariable = new LocalVariable(type, $name.text, localVariableId++);
-            symbolTable.put(localVariable);
+            Variable variable = new Variable(type, $name.text, variableId++);
+            symbolTable.put(variable);
         };
 
 assignment
     :  ^('=' name=IDENTIFIER value=expression) {
-          LocalVariable var = symbolTable.findLocalVariable($name.text);
+          Variable var = symbolTable.findVariable($name.text);
           if(var == null)
             error(input, $name.line, "using an undeclared variable");
           $start.setNodeType($value.start.getNodeType());
@@ -129,9 +129,9 @@ atom
     :  NUMBER     { $NUMBER.setNodeType(Types.Integer); }
     |  STRING     { $STRING.setNodeType(Types.String); }
     |  IDENTIFIER {
-            Variable var = symbolTable.findVariable($IDENTIFIER.text);
-            if(var != null)
-                $IDENTIFIER.setNodeType(var.getType());
+            Identifier identifier = symbolTable.findIdentifier($IDENTIFIER.text);
+            if(identifier != null)
+                $IDENTIFIER.setNodeType(identifier.getType());
         }
     |  call
     ;

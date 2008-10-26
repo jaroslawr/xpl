@@ -9,42 +9,31 @@ public class SymbolTable implements Opcodes {
   private ArrayList<Frame> frames = new ArrayList<Frame>();
   public int getCurrentFrameId() { return frames.size()-1; }
 
-  private Frame currentFrame = null;
+  private Frame current = null;
 
-  public Variable findVariable(String name) {
-    return currentFrame.find(name, Variable.class);
-  }
-
-  public Argument findArgument(String name) {
-    return currentFrame.find(name, Argument.class);
-  }
-
-  public LocalVariable findLocalVariable(String name) {
-    return currentFrame.find(name, LocalVariable.class);
-  }
-
-  public Method findMethod(String name) {
-    return currentFrame.find(name, Method.class);
-  }
+  public Identifier findIdentifier(String name) { return current.find(name, Identifier.class); }
+  public Argument   findArgument  (String name) { return current.find(name, Argument.class);   }
+  public Variable   findVariable  (String name) { return current.find(name, Variable.class);   }
+  public Method     findMethod    (String name) { return current.find(name, Method.class);     }
 
   public void put(Symbol sym) {
-    currentFrame.put(sym.getName(), sym);
+    current.put(sym.getName(), sym);
   }
 
   public void enterFrame(int id) {
-    currentFrame = frames.get(id);
+    current = frames.get(id);
   }
 
   public void enterNewFrame() {
-    currentFrame = new Frame(currentFrame);
-    frames.add(currentFrame);
+    current = new Frame(current);
+    frames.add(current);
   }
 
   public void exitFrame()  {
-    currentFrame = currentFrame.getParent();
+    current = current.getParent();
   }
 
   public String toString() {
-    return currentFrame.toString();
+    return current.toString();
   }
 }
