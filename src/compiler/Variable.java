@@ -1,5 +1,6 @@
 public abstract class Variable extends Symbol {
   private Type type;
+  public  Type getType() { return type; }
 
   public  String typeSignature() { return type.signature(); }
 

@@ -119,7 +119,7 @@ string_concatenation
 
 string_concatenation_arg
     :  binary_expression {
-            if($start.getExpType() == "string")
+            if($start.isOf(Types.String))
                 generate.string().appendString();
             else
                 generate.string().appendInteger();

@@ -1,4 +1,12 @@
 public class Type {
+  public Type(String name) {
+    this.name = name;
+  }
+
+  public boolean equals(Type type) {
+    return this.name.equals(type.name);
+  }
+
   private String name;
   public  String getName() { return name; }
 
@@ -12,7 +20,7 @@ public class Type {
     return null;
   }
 
-  public Type(String name) {
-    this.name = name;
+  public String toString() {
+    return name;
   }
 }
