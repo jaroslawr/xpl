@@ -9,11 +9,11 @@ options {
   private CodeGenerator generate;
   private SymbolTable symbolTable;
 
-  public CodeGeneration(TreeNodeStream input, SymbolTable symbolTable, String filename) {
+  public CodeGeneration(TreeNodeStream input, String filename) {
     this(input);
 
     this.symbolTable = symbolTable;
-    this.generate    = new CodeGenerator(symbolTable, filename);
+    this.generate    = new CodeGenerator(filename);
   }
 
   public String strip(String literal) {
@@ -22,9 +22,6 @@ options {
 }
 
 program
-@init {
-    generate.usingFrameId($program.start.getFrameId());
-}
 @after {
     generate.misc().finish();
     generate.getOutput().save();
@@ -36,12 +33,11 @@ atomic_operation
 
 method_definition
 @after { generate.method().finish($header.argumentsCount); }
-    :  ^(METHOD header=method_header ^(PROGN atomic_operation+));
+    :  ^(METHOD header=method_header[(MethodNode)$start] ^(PROGN atomic_operation+));
 
-method_header returns [int argumentsCount]
+method_header[MethodNode methodNode] returns [int argumentsCount]
     :  ^(name=IDENTIFIER ((TYPE args+=IDENTIFIER)+)?) {
-            generate.usingFrameId($method_header.start.getFrameId());
-            generate.method().definition($name.text);
+            generate.method().definition(methodNode);
             {$argumentsCount = $args.size() + 1;}
         };
 
@@ -77,13 +73,13 @@ loop_body
 variable_definition
 @init  { generate.misc().pushThis(); }
     :  ^('=' TYPE name=IDENTIFIER value=expression) {
-            generate.misc().createVariable($name.text);
+            generate.misc().createVariable(((VariableNode)$name));
         };
 
 assignment
 @init  { generate.misc().pushThis(); }
     :  ^('=' name=IDENTIFIER value=expression) {
-            generate.misc().assignToVariable($name.text);
+            generate.misc().assignToVariable(((VariableNode)$name));
         };
 
 expression
@@ -127,14 +123,14 @@ string_concatenation_arg
 
 atom
     :  NUMBER     { generate.misc().load(Integer.parseInt($NUMBER.text)); }
-    |  IDENTIFIER { generate.misc().loadVariable($IDENTIFIER.text); }
+    |  IDENTIFIER { generate.misc().loadVariable((IdentifierNode)$IDENTIFIER); }
     |  STRING     { generate.string().load(strip($STRING.text)); }
     |  call
     ;
 
 call
 @init { generate.method().prepareCall(); }
-    :  ^(CALL IDENTIFIER call_arguments?) { generate.method().call($IDENTIFIER.text); };
+    :  ^(CALL IDENTIFIER call_arguments?) { generate.method().call(((MethodNode)$start)); };
 
 call_arguments
 scope { ArrayList<ASTNode> arguments; }

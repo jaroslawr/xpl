@@ -6,5 +6,5 @@ public abstract class Identifier extends Symbol {
 
   private Type   type;
   public  Type   getType()       { return type; }
-  public  String typeSignature() { return type.signature(); }
+  public  String typeSignature() { return type.getSignature(); }
 }

@@ -80,7 +80,7 @@ public class XplCompiler {
   }
 
   private void codeGeneration() throws RecognitionException {
-    codeGeneration = new CodeGeneration(nodes, semanticAnalysis.getSymbolTable(), args[1]);
+    codeGeneration = new CodeGeneration(nodes, args[1]);
     codeGeneration.program();
   }
 }

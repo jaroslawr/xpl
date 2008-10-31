@@ -6,11 +6,11 @@ public class ContextBuilder implements Opcodes {
   private ClassWriter classWriter;
   private String className;
 
-  public Context create(SymbolTable symbolTable, String className) {
+  public Context create(String className) {
     this.className   = className;
     this.classWriter = stubClass();
 
-    return new Context(symbolTable, className, classWriter, generateInit(), generateMain(), generateRun());
+    return new Context(className, classWriter, generateInit(), generateMain(), generateRun());
   }
 
   private ClassWriter stubClass() {

@@ -10,12 +10,15 @@ public class Type {
   private String name;
   public  String getName() { return name; }
 
-  public String signature() {
+  public String getSignature() {
     if(name == "integer")
       return "I";
 
     if(name == "string")
       return "Ljava/lang/String;";
+
+    if(name == "void")
+      return "V";
 
     return null;
   }

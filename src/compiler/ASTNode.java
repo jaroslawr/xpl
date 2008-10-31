@@ -10,13 +10,8 @@ public class ASTNode extends CommonTree {
     super(node.getToken());
 
     this.nodeType = node.nodeType;
-    this.frameId  = node.frameId;
     this.hasElse  = node.hasElse;
   }
-
-  private int  frameId = 13;
-  public  int  getFrameId()               { return this.frameId; }
-  public  void setFrameId(int frameId)    { this.frameId = frameId; }
 
   private Type nodeType;
   public  Type getNodeType()              { return this.nodeType; }

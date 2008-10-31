@@ -10,7 +10,6 @@ options {
 
 @members {
     private SymbolTable symbolTable = new SymbolTable();
-    public  SymbolTable getSymbolTable() { return symbolTable; }
 
     private ArrayList<String> errors = new ArrayList<String>();
     public  ArrayList<String> getErrors() { return errors; }
@@ -54,7 +53,6 @@ options {
 }
 
 program
-@init  { $program.start.setFrameId(symbolTable.getCurrentFrameId()); }
 @after { if(!errors.isEmpty()) throw new SemanticAnalysisError(); }
     : (method_definition | atomic_operation)+;
 catch [RecognitionException re] {
@@ -66,19 +64,30 @@ atomic_operation
 
 method_definition
 @after { symbolTable.exitFrame(); }
-    :  ^(METHOD method_header ^(PROGN atomic_operation+));
+    :  ^(METHOD method_header ^(PROGN atomic_operation+)) {
+            ((MethodNode)$start).setMethod($method_header.method);
+        };
 
-method_header
-    :  ^(name=IDENTIFIER ((TYPE args+=IDENTIFIER)+)?) {
-            Method method = new Method(Types.Integer, $name.text, $args.size());
+method_header returns [Method method]
+    :  ^(name=IDENTIFIER ((types+=TYPE args+=IDENTIFIER)+)?) {
+            List<Argument> arguments     = new ArrayList<Argument>();
+            Type[]         argumentTypes = new Type[$args.size()];
+
+            for(int i = 0; i < $args.size(); i++) {
+                ASTNode  argNode = (ASTNode) $args.get(i);
+                String   argType = ((ASTNode) $types.get(i)).getText();
+                Type     type     = argType.equals("int") ? Types.Integer : Types.String;
+
+                arguments.add(new Argument(type, argNode.getText(), i+1));
+                argumentTypes[i] = type;
+            }
+
+            Method method = new Method(Types.Integer, $name.text, argumentTypes);
             symbolTable.put(method);
             symbolTable.enterNewFrame();
-            for(int i = 0; i < $args.size(); i++) {
-                ASTNode node   = (ASTNode) $args.get(i);
-                String argName = node.getText();
-                symbolTable.put(new Argument(Types.Integer, argName, i+1));
-            }
-            $method_header.start.setFrameId(symbolTable.getCurrentFrameId());
+            for(Argument arg : arguments)
+                symbolTable.put(arg);
+            $method = method;
         };
 
 conditional
@@ -95,14 +104,16 @@ variable_definition
             Type type = $value.start.getNodeType();
             Variable variable = new Variable(type, $name.text, variableId++);
             symbolTable.put(variable);
+            ((VariableNode)$name).setVariable(variable);
         };
 
 assignment
     :  ^('=' name=IDENTIFIER value=expression) {
-          Variable var = symbolTable.findVariable($name.text);
-          if(var == null)
+          Variable variable = symbolTable.findVariable($name.text);
+          if(variable == null)
             error(input, $name.line, "using an undeclared variable");
           $start.setNodeType($value.start.getNodeType());
+          ((VariableNode)$name).setVariable(variable);
         };
 
 expression
@@ -132,6 +143,7 @@ atom
             Identifier identifier = symbolTable.findIdentifier($IDENTIFIER.text);
             if(identifier != null)
                 $IDENTIFIER.setNodeType(identifier.getType());
+            ((IdentifierNode)$IDENTIFIER).setIdentifier(identifier);
         }
     |  call
     ;
@@ -153,6 +165,13 @@ string_plus_fold
     |  atom { $start.setNodeType($atom.start.getNodeType()); }
     ;
 
-return_expression: ^(RETURN expression);
+return_expression
+    :   ^(RETURN expression)
+    ;
 
-call:              ^(CALL IDENTIFIER ^(CALL_ARGUMENTS expression+));
+call
+    :   ^(CALL IDENTIFIER ^(CALL_ARGUMENTS expression+)) {
+        Method method = symbolTable.findMethod($IDENTIFIER.text);
+        ((MethodNode)$start).setMethod(method);
+    }
+    ;

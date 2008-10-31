@@ -23,7 +23,7 @@ catch [RecognitionException re] {
 
 atomic_operation:        conditional | loop | assignment | variable_definition | expression | return_expression;
 
-method_definition:       method_header atomic_operation+ 'end' -> ^(METHOD method_header ^(PROGN atomic_operation+));
+method_definition:       method_header atomic_operation+ 'end' -> ^(METHOD<node=MethodNode> method_header ^(PROGN atomic_operation+));
 
 method_header:           'method' IDENTIFIER '(' method_arguments? ')' -> ^(IDENTIFIER method_arguments?);
 
@@ -31,7 +31,7 @@ method_arguments:        variable_declaration (','! variable_declaration)*;
 
 return_expression:       'return' expression -> ^(RETURN expression);
 
-call:                    IDENTIFIER '(' call_arguments? ')' -> ^(CALL IDENTIFIER call_arguments?);
+call:                    IDENTIFIER '(' call_arguments? ')' -> ^(CALL<node=MethodNode> IDENTIFIER call_arguments?);
 
 call_arguments:          arguments+=expression (',' arguments+=expression)* -> ^(CALL_ARGUMENTS $arguments);
 
@@ -40,11 +40,11 @@ conditional:             'if' expression (true_branch+=atomic_operation)+ ('else
 
 loop:                    'while' expression atomic_operation+ 'end' -> ^(WHILE expression ^(PROGN atomic_operation+));
 
-variable_declaration:    TYPE IDENTIFIER;
+variable_declaration:    TYPE IDENTIFIER<VariableNode>;
 
-variable_definition:     TYPE IDENTIFIER '='^ expression;
+variable_definition:     TYPE IDENTIFIER<VariableNode> '='^ expression;
 
-assignment:              IDENTIFIER '='^ expression;
+assignment:              IDENTIFIER<VariableNode> '='^ expression;
 
 expression:              boolean_expression;
 
@@ -58,7 +58,7 @@ term:		             factor (('*' | '/')^ factor)*;
 
 factor:                  atom ('%'^ atom)*;
 
-atom:                    NUMBER | STRING | (IDENTIFIER '(') => call | '('! expression ')'! | IDENTIFIER;
+atom:                    NUMBER | STRING | (IDENTIFIER '(') => call | '('! expression ')'! | IDENTIFIER<IdentifierNode>;
 
 STRING:                  '\"' (options {greedy=false;}: ('A'..'z') | ' ' | '(' | ')' | ':' | '-')* '\"';
 

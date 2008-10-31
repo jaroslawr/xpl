@@ -1,27 +1,30 @@
 public class Method extends Symbol {
-  private int arity;
-  public  int getArity() { return arity; }
-
-  private String signature;
-
-  private Type type;
-
-  public Method(Type type, String name, int arity) {
-    this.type  = type;
-    this.name  = name;
-    this.arity = arity;
-
-    generateSignature();
+  public Method(Type returnType, String name, Type[] argumentTypes) {
+    super(name);
+    this.returnType    = returnType;
+    this.argumentTypes = argumentTypes;
   }
 
-  private void generateSignature() {
-    signature = "(";
-    for(int i = 0; i < arity; i++)
-      signature += "I";
-    signature += ")I";
+  public Method(Type returnType, String name, Type[] argumentTypes, boolean builtin) {
+    this(returnType, name, argumentTypes);
+    this.builtin = builtin;
+  }
+
+  private boolean builtin = false;
+  public  boolean isBuiltin() { return builtin; }
+
+  private Type   returnType;
+  private Type[] argumentTypes;
+  public  int    getArity() { return argumentTypes.length; }
+
+  public String getArgumentsSignature() {
+    String result = "";
+    for(Type type : argumentTypes)
+      result += type.getSignature();
+    return result;
   }
 
   public String getSignature() {
-    return signature;
+    return "(" + getArgumentsSignature() + ")" + returnType.getSignature();
   }
 }

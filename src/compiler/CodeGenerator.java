@@ -25,8 +25,8 @@ public class CodeGenerator implements Opcodes {
   private Output output;
   public  Output getOutput() { return output; }
 
-  public CodeGenerator(SymbolTable symbolTable, String filename) {
-    context       = contextBuilder.create(symbolTable, extractClassName(filename));
+  public CodeGenerator(String filename) {
+    context       = contextBuilder.create(extractClassName(filename));
 
     cgArithmetic  = new CodeGeneratorArithmetic(context);
     cgBoolean     = new CodeGeneratorBoolean(context);
@@ -37,10 +37,6 @@ public class CodeGenerator implements Opcodes {
     cgString      = new CodeGeneratorString(context);
 
     output        = new Output(context.getClassWriter(), filename);
-  }
-
-  public void usingFrameId(int frameId) {
-    context.enterFrame(frameId);
   }
 
   private String extractClassName(String filename) {

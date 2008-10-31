@@ -3,18 +3,13 @@ import java.util.*;
 import org.objectweb.asm.MethodVisitor;
 
 public class CodeGeneratorMethod extends CodeGeneratorModule {
-  private Hashtable<String, String> builtinMethods = new Hashtable<String, String>() {{
-      put("puts", "(Ljava/lang/String;)V");
-      put("print", "(I)V");
-      put("power", "(II)I");
-    }};
-
   public CodeGeneratorMethod(Context context) {
     super(context);
   }
 
-  public void definition(String name) {
-    Method method = symbolTable.findMethod(name);
+  public void definition(MethodNode definition) {
+    Method method = definition.getMethod();
+    String name   = method.getName();
     MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC, name, method.getSignature(), null, null);
     context.switchMethodVisitor(methodVisitor);
   }
@@ -27,21 +22,21 @@ public class CodeGeneratorMethod extends CodeGeneratorModule {
     currentMethod.visitInsn(IRETURN);
     currentMethod.visitMaxs(10, argumentsCount);
     context.leaveMethod();
-    symbolTable.exitFrame();
   }
 
   public void prepareCall() {
     currentMethod.visitVarInsn(ALOAD, 0);
   }
 
-  public void call(String name) {
-    String signature = builtinMethods.get(name);
-    if(signature != null) {
-      currentMethod.visitMethodInsn(INVOKESTATIC, "Runtime", name, signature);
+  public void call(MethodNode call) {
+    Method method    = call.getMethod();
+    String name      = method.getName();
+
+    if(method.isBuiltin()) {
+      currentMethod.visitMethodInsn(INVOKESTATIC, "Runtime", name, method.getSignature());
       currentMethod.visitInsn(POP);
     }
     else {
-      Method method = symbolTable.findMethod(name);
       currentMethod.visitMethodInsn(INVOKEVIRTUAL, className, name, method.getSignature());
     }
   }

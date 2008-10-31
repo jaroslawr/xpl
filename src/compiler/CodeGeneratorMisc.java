@@ -13,19 +13,19 @@ public class CodeGeneratorMisc extends CodeGeneratorModule {
     currentMethod.visitVarInsn(ALOAD, 0);
   };
 
-  public void createVariable(String name) {
-    Variable var = symbolTable.findVariable(name);
+  public void createVariable(VariableNode node) {
+    Variable var = node.getVariable();
     classWriter.visitField(ACC_PUBLIC, var.getVariableId(), var.typeSignature(), "", null);
-    assignToVariable(name);
+    assignToVariable(node);
   }
 
-  public void assignToVariable(String name) {
-    Variable var = symbolTable.findVariable(name);
+  public void assignToVariable(VariableNode node) {
+    Variable var = node.getVariable();
     currentMethod.visitFieldInsn(PUTFIELD, className, var.getVariableId(), var.typeSignature());
   }
 
-  public void loadVariable(String name) {
-    Identifier identifier = symbolTable.findIdentifier(name);
+  public void loadVariable(IdentifierNode node) {
+    Identifier identifier = node.getIdentifier();
 
     if(identifier instanceof Argument) {
       Argument arg = (Argument) identifier;

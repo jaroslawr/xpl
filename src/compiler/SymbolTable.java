@@ -4,7 +4,13 @@ import org.objectweb.asm.Opcodes;
 import java.util.*;
 
 public class SymbolTable implements Opcodes {
-  public SymbolTable() { enterNewFrame(); }
+  public SymbolTable() {
+    enterNewFrame();
+
+    current.put("puts",  new Method(Types.Void,    "puts",  new Type[] { Types.String  }, true));
+    current.put("print", new Method(Types.Void,    "print", new Type[] { Types.Integer }, true));
+    current.put("power", new Method(Types.Integer, "power", new Type[] { Types.Integer, Types.Integer }, true));
+  }
 
   private ArrayList<Frame> frames = new ArrayList<Frame>();
   public int getCurrentFrameId() { return frames.size()-1; }

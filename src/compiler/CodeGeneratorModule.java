@@ -6,7 +6,6 @@ public class CodeGeneratorModule implements Opcodes {
   protected Context       context;
   protected ClassWriter   classWriter;
   protected MethodVisitor currentMethod;
-  protected SymbolTable   symbolTable;
   protected String        className;
 
   public CodeGeneratorModule(Context context) {
@@ -23,7 +22,4 @@ public class CodeGeneratorModule implements Opcodes {
     this.currentMethod = currentMethod;
   }
 
-  public void symbolTableChanged(SymbolTable symbolTable) {
-    this.symbolTable = symbolTable;
-  }
 }

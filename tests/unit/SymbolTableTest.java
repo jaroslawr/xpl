@@ -28,7 +28,7 @@ public class SymbolTableTest {
   public void storesMethods() {
     SymbolTable table = new SymbolTable();
 
-    Method method = new Method(Types.Integer, "foobar", 3);
+    Method method = new Method(Types.Integer, "foobar", new Type[] { Types.Integer, Types.Integer, Types.Integer });
     table.put(method);
 
     Method found = table.findMethod("foobar");
@@ -38,7 +38,7 @@ public class SymbolTableTest {
   @Test
   public void ignoresItemsOfDifferentTypeWhenLookingUpSymbols() {
     SymbolTable   table    = new SymbolTable();
-    Method        method   = new Method(Types.Integer, "foobar", 3);
+    Method        method   = new Method(Types.Integer, "foobar", new Type[] { Types.Integer, Types.Integer, Types.Integer });
     Variable      variable = new Variable(Types.Integer, "foobar", 0);
 
     table.put(method);
