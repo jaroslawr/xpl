@@ -2,15 +2,15 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-public class ContextBuilder implements Opcodes {
+public class ContextInitializer implements Opcodes {
   private ClassWriter classWriter;
   private String className;
 
-  public Context create(String className) {
-    this.className   = className;
+  public void initialize(Context context, String filename) {
+    this.className   = extractClassName(filename);
     this.classWriter = stubClass();
 
-    return new Context(className, classWriter, generateInit(), generateMain(), generateRun());
+    context.initialize(className, classWriter, generateInit(), generateMain(), generateRun());
   }
 
   private ClassWriter stubClass() {
@@ -43,5 +43,9 @@ public class ContextBuilder implements Opcodes {
 
   private MethodVisitor generateRun() {
     return classWriter.visitMethod(ACC_PUBLIC, "run", "()V", null, null);
+  }
+
+  private String extractClassName(String filename) {
+    return filename.substring(filename.lastIndexOf("/")+1, filename.indexOf("."));
   }
 }

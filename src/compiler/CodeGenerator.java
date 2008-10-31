@@ -3,13 +3,16 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 public class CodeGenerator implements Opcodes {
-  private CodeGeneratorArithmetic  cgArithmetic;
-  private CodeGeneratorBoolean     cgBoolean;
-  private CodeGeneratorConditional cgConditional;
-  private CodeGeneratorLoop        cgLoop;
-  private CodeGeneratorMethod      cgMethod;
-  private CodeGeneratorMisc        cgMisc;
-  private CodeGeneratorString      cgString;
+  private Context context = new Context();
+  private ContextInitializer contextInitializer = new ContextInitializer();
+
+  private CodeGeneratorArithmetic  cgArithmetic  = new CodeGeneratorArithmetic(context);
+  private CodeGeneratorBoolean     cgBoolean     = new CodeGeneratorBoolean(context);
+  private CodeGeneratorConditional cgConditional = new CodeGeneratorConditional(context);
+  private CodeGeneratorLoop        cgLoop        = new CodeGeneratorLoop(context);
+  private CodeGeneratorMethod      cgMethod      = new CodeGeneratorMethod(context);
+  private CodeGeneratorMisc        cgMisc        = new CodeGeneratorMisc(context);
+  private CodeGeneratorString      cgString      = new CodeGeneratorString(context);
 
   public CodeGeneratorArithmetic   arithmetic()  { return cgArithmetic; }
   public CodeGeneratorBoolean      bool()        { return cgBoolean; }
@@ -19,27 +22,11 @@ public class CodeGenerator implements Opcodes {
   public CodeGeneratorMisc         misc()        { return cgMisc; }
   public CodeGeneratorString       string()      { return cgString; }
 
-  private Context context;
-  private ContextBuilder contextBuilder = new ContextBuilder();
-
   private Output output;
   public  Output getOutput() { return output; }
 
   public CodeGenerator(String filename) {
-    context       = contextBuilder.create(extractClassName(filename));
-
-    cgArithmetic  = new CodeGeneratorArithmetic(context);
-    cgBoolean     = new CodeGeneratorBoolean(context);
-    cgConditional = new CodeGeneratorConditional(context);
-    cgLoop        = new CodeGeneratorLoop(context);
-    cgMethod      = new CodeGeneratorMethod(context);
-    cgMisc        = new CodeGeneratorMisc(context);
-    cgString      = new CodeGeneratorString(context);
-
-    output        = new Output(context.getClassWriter(), filename);
-  }
-
-  private String extractClassName(String filename) {
-    return filename.substring(filename.lastIndexOf("/")+1, filename.indexOf("."));
+    contextInitializer.initialize(context, filename);
+    output = new Output(context.getClassWriter(), filename);
   }
 }
