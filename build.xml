@@ -3,27 +3,30 @@
     Builds the Xpl compiler and runs the associated unit and integration tests.
   </description>
 
-  <property name="src-compiler"          location="src/compiler" />
-  <property name="src-runtime"           location="src/runtime" />
-  <property name="bin"                   location="bin" />
-  <property name="classes"               location="${bin}/classes" />
-  <property name="classes-compiler"      location="${bin}/classes/compiler" />
-  <property name="classes-runtime"       location="${bin}/classes/runtime" />
-  <property name="classes-tests"         location="${bin}/classes/tests" />
-  <property name="tests"                 location="tests/" />
-  <property name="tests-unit"            location="tests/unit" />
-  <property name="tests-integration"     location="tests/integration" />
-  <property name="tests-integration-pos" location="tests/integration/positive" />
-  <property name="tests-integration-neg" location="tests/integration/negative" />
+  <property name="src"                      location="src" />
+  <property name="src-xpl"                  location="${src}/xpl" />
+  <property name="src-semantic"             location="${src}/xpl/semantic" />
+  <property name="src-codegen"              location="${src}/xpl/codegen" />
+  <property name="bin"                      location="bin" />
+  <property name="classes"                  location="${bin}/classes" />
+  <property name="classes-xpl"              location="${bin}/classes/xpl" />
+  <property name="classes-runtime"          location="${bin}/classes/xpl/runtime" />
+  <property name="classes-tests"            location="${bin}/classes/tests" />
+  <property name="tests"                    location="tests/" />
+  <property name="tests-unit"               location="tests/unit" />
+  <property name="tests-integration"        location="tests/integration" />
+  <property name="tests-integration-pos"    location="tests/integration/positive" />
+  <property name="tests-integration-neg"    location="tests/integration/negative" />
 
   <macrodef name="antlr3">
+    <attribute name="libdirectory"/>
     <attribute name="grammarname"/>
     <attribute name="outputdirectory"/>
     <sequential>
       <antlr:antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr"
                     target="@{grammarname}"
                     outputdirectory="@{outputdirectory}"
-                    libdirectory="${src-compiler}"
+                    libdirectory="@{libdirectory}"
                     multithreaded="${multithreaded}"
                     report="${report}"
                     depend="${depend}"
@@ -36,10 +39,6 @@
 
   <target name="init">
     <tstamp/>
-    <mkdir dir="${classes}"/>
-    <mkdir dir="${classes-compiler}"/>
-    <mkdir dir="${classes-runtime}"/>
-    <mkdir dir="${classes-tests}"/>
     <delete>
       <fileset dir="${tests-integration}">
         <include name="*.class"/>
@@ -51,36 +50,45 @@
   </target>
 
   <target name="compile-grammars" depends="init" description="compile the ANTLR grammars">
-    <antlr3 grammarname="${src-compiler}/Xpl.g" outputdirectory="${src-compiler}" />
-    <antlr3 grammarname="${src-compiler}/SemanticAnalysis.g" outputdirectory="${src-compiler}" />
-    <antlr3 grammarname="${src-compiler}/CodeGeneration.g" outputdirectory="${src-compiler}" />
+    <antlr3 grammarname="${src-xpl}/Xpl.g" libdirectory="${src-xpl}" outputdirectory="${src-xpl}" />
+    <antlr3 grammarname="${src-semantic}/SemanticAnalysis.g" libdirectory="${src-xpl}" outputdirectory="${src-semantic}" />
+    <antlr3 grammarname="${src-codegen}/CodeGeneration.g" libdirectory="${src-semantic}" outputdirectory="${src-codegen}" />
   </target>
 
   <target name="compile" depends="compile-grammars" description="compile the source">
-    <javac srcdir="${src-compiler}" destdir="${classes-compiler}" debug="true"/>
-    <javac srcdir="${src-runtime}"  destdir="${classes-runtime}"/>
+    <javac srcdir="${src}" destdir="${classes}" debug="true"/>
+  </target>
 
-    <javac srcdir="${tests-unit}"   destdir="${classes-tests}">
+  <target name="dist" depends="compile" description="generate the distribution">
+    <jar basedir="${classes}" excludes="tests/** xpl/runtime/**" jarfile="${bin}/xpl.jar">
+      <manifest>
+        <attribute name="Main-Class" value="xpl/Xpl" />
+        <attribute name="Class-Path" value="antlr-runtime-3.1.jar asm-all-3.1.jar" />
+      </manifest>
+    </jar>
+
+    <jar basedir="${classes}" includes="xpl/runtime/**" jarfile="${bin}/runtime.jar" />
+  </target>
+
+  <target name="compile-test" depends="dist" description="compile the tests">
+    <javac srcdir="${tests-unit}" destdir="${classes-tests}">
       <classpath>
-        <pathelement location="${classes-compiler}"/>
-        <pathelement location="${classes-runtime}"/>
+        <pathelement location="${bin}/xpl.jar"/>
       </classpath>
     </javac>
 
-    <javac srcdir="${tests-integration}"   destdir="${classes-tests}">
+    <javac srcdir="${tests-integration}" destdir="${classes-tests}">
       <classpath>
-        <pathelement location="${classes-compiler}"/>
-        <pathelement location="${classes-runtime}"/>
+        <pathelement location="${bin}/xpl.jar"/>
       </classpath>
     </javac>
   </target>
 
-  <target name="test" depends="compile" description="run the unit and integration tests">
+  <target name="test" depends="compile-test" description="run the unit and integration tests">
     <junit haltonfailure="yes" haltonerror="yes">
       <classpath>
-        <pathelement location="${classes-compiler}"/>
-        <pathelement location="${classes-runtime}"/>
-        <pathelement location="${classes-tests}"/>
+        <pathelement path="${bin}/xpl.jar"/>
+        <pathelement path="${classes-tests}"/>
         <pathelement path="${java.class.path}"/>
       </classpath>
 
@@ -92,31 +100,7 @@
     </junit>
   </target>
 
-  <target name="dist" depends="test" description="generate the distribution">
-    <jar jarfile="${bin}/xpl.jar" basedir="${classes-compiler}">
-      <manifest>
-        <attribute name="Main-Class" value="Xpl" />
-        <attribute name="Class-Path" value="antlr-runtime-3.1.jar asm-all-3.1.jar" />
-      </manifest>
-    </jar>
-
-    <jar jarfile="${bin}/runtime.jar" basedir="${classes-runtime}" />
-  </target>
-
-  <target name="clean" description="clean up">
-    <delete>
-      <fileset dir="${classes}" includes="**/*.class"/>
-    </delete>
-
-    <delete file="${src-compiler}/XplLexer.java"/>
-    <delete file="${src-compiler}/XplParser.java"/>
-    <delete file="${src-compiler}/SemanticAnalysis.java"/>
-    <delete file="${src-compiler}/CodeGeneration.java"/>
-    <delete file="${bin}/runtime.jar"/>
-    <delete file="${bin}/xpl.jar"/>
-  </target>
-
-  <target name="integration-test" depends="dist" description="compile and run tests from tests/integration creating appropiate output files">
+  <target name="integration-test" depends="test" description="compile and run tests from tests/integration creating appropiate output files">
     <for param="file">
       <path>
         <fileset dir="${tests-integration-pos}" includes="*.xpl"/>
@@ -129,7 +113,7 @@
           <arg value="${tests-integration-pos}/${@{file}-test-name}.class" />
         </java>
 
-        <java classpath="${tests-integration-pos}:${classes-runtime}" classname="${@{file}-test-name}" fork="true" output="${tests-integration-pos}/${@{file}-test-name}.output-current" outputproperty="run-failure" />
+        <java classpath="${tests-integration-pos}:${bin}/runtime.jar" classname="${@{file}-test-name}" fork="true" output="${tests-integration-pos}/${@{file}-test-name}.output-current" outputproperty="run-failure" />
 
         <exec executable="diff" output="${tests-integration-pos}/${@{file}-test-name}.output-diff">
           <arg value="${tests-integration-pos}/${@{file}-test-name}.output-desired"/>
@@ -155,14 +139,25 @@
 
     <junit haltonfailure="yes" haltonerror="yes" showoutput="yes">
       <classpath>
-        <pathelement location="${classes-compiler}"/>
-        <pathelement location="${classes-runtime}"/>
-        <pathelement location="${classes-tests}"/>
+        <pathelement path="${classes-tests}"/>
         <pathelement path="${java.class.path}"/>
       </classpath>
 
       <test name="IntegrationTest">
       </test>
     </junit>
+  </target>
+
+  <target name="clean" description="clean up">
+    <delete>
+      <fileset dir="${classes}" includes="**/*.class"/>
+    </delete>
+
+    <delete file="${src-xpl}/XplLexer.java"/>
+    <delete file="${src-xpl}/XplParser.java"/>
+    <delete file="${src-semantic}/SemanticAnalysis.java"/>
+    <delete file="${src-codegen}/CodeGeneration.java"/>
+    <delete file="${bin}/runtime.jar"/>
+    <delete file="${bin}/xpl.jar"/>
   </target>
 </project>

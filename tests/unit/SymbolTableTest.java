@@ -1,6 +1,9 @@
 import org.junit.*;
 import static org.junit.Assert.*;
 
+import xpl.semantic.*;
+import xpl.semantic.symbols.*;
+
 public class SymbolTableTest {
   @Test
   public void storesArguments() {
