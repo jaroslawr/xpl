@@ -2,6 +2,7 @@ package xpl.codegen;
 
 import xpl.semantic.ast.*;
 import xpl.semantic.symbols.*;
+import xpl.semantic.Types;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
@@ -34,7 +35,10 @@ public class CodeGeneratorMisc extends CodeGeneratorModule {
 
     if(identifier instanceof Argument) {
       Argument arg = (Argument) identifier;
-      currentMethod.visitVarInsn(ILOAD, arg.getId());
+      if(arg.getType().equals(Types.Integer))
+	currentMethod.visitVarInsn(ILOAD, arg.getId());
+      else
+	currentMethod.visitVarInsn(ALOAD, arg.getId());
     }
     else if (identifier instanceof Variable) {
       Variable var = (Variable) identifier;

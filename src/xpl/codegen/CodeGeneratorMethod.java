@@ -2,6 +2,7 @@ package xpl.codegen;
 
 import xpl.semantic.ast.*;
 import xpl.semantic.symbols.*;
+import xpl.semantic.Types;
 
 import java.util.*;
 
@@ -23,9 +24,13 @@ public class CodeGeneratorMethod extends CodeGeneratorModule {
     currentMethod.visitInsn(IRETURN);
   }
 
-  public void finish(int argumentsCount) {
-    currentMethod.visitInsn(IRETURN);
-    currentMethod.visitMaxs(10, argumentsCount);
+  public void finish(MethodNode definition) {
+    Method method = definition.getMethod();
+    if(method.getReturnType().equals(Types.Integer))
+      currentMethod.visitInsn(IRETURN);
+    else
+      currentMethod.visitInsn(ARETURN);
+    currentMethod.visitMaxs(10, method.getArity() + 1);
     context.leaveMethod();
   }
 

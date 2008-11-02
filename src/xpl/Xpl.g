@@ -24,18 +24,14 @@ tokens  { CALL; CALL_ARGUMENTS; WHILE; IF; METHOD; PROGN; RETURN; STRING_PLUS; T
     }
 }
 
-program
-@after { if(!errors.isEmpty()) throw new SyntacticAnalysisError(); }
-    :                    (method_definition | atomic_operation)+;
-catch [RecognitionException re] {
-    throw re;
-}
+program:                 (method_definition | atomic_operation)+ {  if(!errors.isEmpty()) throw new SyntacticAnalysisError(); };
+catch [RecognitionException re] { throw re; }
 
 atomic_operation:        conditional | loop | assignment | variable_definition | expression | return_expression;
 
 method_definition:       method_header atomic_operation+ 'end' -> ^(METHOD<node=MethodNode> method_header ^(PROGN atomic_operation+));
 
-method_header:           'method' IDENTIFIER '(' method_arguments? ')' -> ^(IDENTIFIER method_arguments?);
+method_header:           'fn' IDENTIFIER '(' method_arguments? ')' '-' '>' TYPE -> ^(IDENTIFIER method_arguments? TYPE<TypeNode>);
 
 method_arguments:        variable_declaration (','! variable_declaration)*;
 
@@ -43,16 +39,16 @@ return_expression:       'return' expression -> ^(RETURN expression);
 
 call:                    IDENTIFIER '(' call_arguments? ')' -> ^(CALL<node=MethodNode> IDENTIFIER call_arguments?);
 
-call_arguments:          arguments+=expression (',' arguments+=expression)* -> ^(CALL_ARGUMENTS $arguments);
+call_arguments:          expression (',' expression)* -> ^(CALL_ARGUMENTS expression+);
 
 conditional:             'if' expression (true_branch+=atomic_operation)+ ('else' (false_branch+=atomic_operation)+)? 'end'
                          -> ^(IF expression ^(PROGN $true_branch) ^(PROGN $false_branch)?);
 
 loop:                    'while' expression atomic_operation+ 'end' -> ^(WHILE expression ^(PROGN atomic_operation+));
 
-variable_declaration:    TYPE IDENTIFIER<VariableNode>;
+variable_declaration:    TYPE<TypeNode> IDENTIFIER<VariableNode>;
 
-variable_definition:     TYPE IDENTIFIER<VariableNode> '='^ expression;
+variable_definition:     TYPE<TypeNode> IDENTIFIER<VariableNode> '='^ expression;
 
 assignment:              IDENTIFIER<VariableNode> '='^ expression;
 

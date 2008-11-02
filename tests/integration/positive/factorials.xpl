@@ -1,4 +1,4 @@
-method factorial(int n)
+fn factorial(int n) -> int
   int result = n
   int iter   = n - 1
   while iter > 1

@@ -30,34 +30,6 @@ options {
         errors.add("Line " + line + ": " + message);
         throw new RecognitionException(input);
     }
-
-    private void deduceType(ASTNode deduced, ASTNode a, ASTNode b) {
-        if(a.isOf(Types.String) || b.isOf(Types.String))
-            deduced.setNodeType(Types.String);
-        else
-            deduced.setNodeType(Types.Integer);
-    }
-
-    private void deduceType(ASTNode deduced, List<ASTNode> list) {
-        if(containsString(list))
-            deduced.setNodeType(Types.String);
-        else
-            deduced.setNodeType(Types.Integer);
-    }
-
-    private void deduceType(ASTNode deduced, ASTNode node, List<ASTNode> list) {
-        if(node.isOf(Types.String) || containsString(list))
-            deduced.setNodeType(Types.String);
-        else
-            deduced.setNodeType(Types.Integer);
-    }
-
-    private boolean containsString(List<ASTNode> astNodes) {
-        for(ASTNode node : astNodes)
-            if(node.isOf(Types.String))
-                return true;
-        return false;
-    }
 }
 
 program
@@ -77,20 +49,21 @@ method_definition
         };
 
 method_header returns [Method method]
-    :  ^(name=IDENTIFIER ((types+=TYPE args+=IDENTIFIER)+)?) {
-            List<Argument> arguments     = new ArrayList<Argument>();
-            Type[]         argumentTypes = new Type[$args.size()];
+    :  ^(name=IDENTIFIER ((types+=TYPE args+=IDENTIFIER)+)? return_type=TYPE) {
+            List<Argument> arguments      = new ArrayList<Argument>();
+            Type[]         argumentTypes  = new Type[$args.size()];
+            TypeNode       returnTypeNode = (TypeNode) $return_type;
 
             for(int i = 0; i < $args.size(); i++) {
-                ASTNode  argNode = (ASTNode) $args.get(i);
-                String   argType = ((ASTNode) $types.get(i)).getText();
-                Type     type     = argType.equals("int") ? Types.Integer : Types.String;
+                ASTNode  idNode   = (ASTNode)  $args.get(i);
+                TypeNode typeNode = (TypeNode) $types.get(i);
 
-                arguments.add(new Argument(type, argNode.getText(), i+1));
+                Type type = typeNode.getRepresentedType();
+                arguments.add(new Argument(type, idNode.getText(), i+1));
                 argumentTypes[i] = type;
             }
 
-            Method method = new Method(Types.Integer, $name.text, argumentTypes);
+            Method method = new Method(returnTypeNode.getRepresentedType(), $name.text, argumentTypes);
             symbolTable.put(method);
             symbolTable.enterNewFrame();
             for(Argument arg : arguments)
@@ -105,12 +78,18 @@ loop
     :  ^(WHILE expression ^(PROGN atomic_operation+));
 
 variable_definition
-    :  ^('=' TYPE name=IDENTIFIER value=expression) {
+    :  ^('=' decl_type=TYPE name=IDENTIFIER value=expression) {
             Variable var = symbolTable.findVariable($name.text);
             if(var != null)
               error(input, $name.line, "declaring an already declared variable");
-            Type type = $value.start.getNodeType();
-            Variable variable = new Variable(type, $name.text, variableId++);
+
+            Type lType = ((TypeNode)$decl_type).getRepresentedType();
+            Type rType = $value.start.getNodeType();
+
+            if(!lType.equals(rType))
+              error(input, $name.line, "the declared type isn't the same as the r-value type");
+
+            Variable variable = new Variable(lType, $name.text, variableId++);
             symbolTable.put(variable);
             ((VariableNode)$name).setVariable(variable);
         };
@@ -134,14 +113,14 @@ boolean_expression
 
 comparision_expression
     :  ^(('==' | '<=' | '>=' | '<' | '>') a=binary_expression b=binary_expression)
-    |  binary_expression { $start.setNodeType(Types.Integer); }
+    |  binary_expression { $start.setNodeType($binary_expression.start.getNodeType()); }
     |  addition          { $start.setNodeType($addition.start.getNodeType()); }
     ;
 
 binary_expression
-    :  ^(('-' | '*' | '/' | '%') a=binary_expression b=binary_expression) { deduceType($start, $a.start, $b.start); }
-    | '(' binary_expression ')'
-    | atom
+    :  ^(('-' | '*' | '/' | '%') a=binary_expression b=binary_expression) { TypeChecker.infer($start, $a.start, $b.start); }
+    | '(' expr=binary_expression ')' { $start.setNodeType($expr.start.getNodeType()); }
+    | atom                           { $start.setNodeType($atom.start.getNodeType()); }
     ;
 
 atom
@@ -157,17 +136,17 @@ atom
     ;
 
 addition
-    :  ^('+' string_plus_fold binary_expression) { deduceType($start, $string_plus_fold.start, $binary_expression.start); }
+    :  ^('+' string_plus_fold binary_expression) { TypeChecker.infer($start, $string_plus_fold.start, $binary_expression.start); }
        -> { $start.isOf(Types.String) }? ^(STRING_PLUS string_plus_fold binary_expression)
        ->                                ^('+' string_plus_fold binary_expression)
     | string_plus_fold                   { $start.setNodeType($string_plus_fold.start.getNodeType()); }
     ;
 
 string_plus_fold
-    :  ^('+' (exps+=binary_expression)+) { deduceType($start, $exps); }
+    :  ^('+' (exps+=binary_expression)+) { TypeChecker.infer($start, $exps); }
         -> {$start.isOf(Types.String)}? binary_expression+
         -> ^('+' binary_expression+)
-    |  ^('+' rest=string_plus_fold exp=binary_expression) { deduceType($start, $rest.start, $exp.start); }
+    |  ^('+' rest=string_plus_fold exp=binary_expression) { TypeChecker.infer($start, $rest.start, $exp.start); }
         -> {$start.isOf(Types.String)}?   $rest $exp
         -> ^('+' $rest $exp)
     |  atom { $start.setNodeType($atom.start.getNodeType()); }

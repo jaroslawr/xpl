@@ -13,13 +13,13 @@ public class Type {
   public  String getName() { return name; }
 
   public String getSignature() {
-    if(name == "integer")
+    if(name.equals("integer"))
       return "I";
 
-    if(name == "string")
+    if(name.equals("string"))
       return "Ljava/lang/String;";
 
-    if(name == "void")
+    if(name.equals("void"))
       return "V";
 
     return null;

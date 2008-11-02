@@ -40,11 +40,11 @@ atomic_operation
     :  conditional | loop | assignment | variable_definition | expression | return_expression;
 
 method_definition
-@after { generate.method().finish($header.argumentsCount); }
+@after { generate.method().finish((MethodNode)$start); }
     :  ^(METHOD header=method_header[(MethodNode)$start] ^(PROGN atomic_operation+));
 
 method_header[MethodNode methodNode] returns [int argumentsCount]
-    :  ^(name=IDENTIFIER ((TYPE args+=IDENTIFIER)+)?) {
+    :  ^(name=IDENTIFIER ((TYPE args+=IDENTIFIER)+)? return_type=TYPE) {
             generate.method().definition(methodNode);
             {$argumentsCount = $args.size() + 1;}
         };

@@ -1,4 +1,4 @@
-method square(int n)
+fn square(int n) -> int
   n * n
 end
 

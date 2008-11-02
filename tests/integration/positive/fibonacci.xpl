@@ -1,4 +1,4 @@
-method fibonacci(int x)
+fn fibonacci(int x) -> int
   if x == 0
     return 0
   end

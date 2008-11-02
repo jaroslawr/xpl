@@ -18,6 +18,8 @@ public class Method extends Symbol {
   public  boolean isBuiltin() { return builtin; }
 
   private Type   returnType;
+  public  Type   getReturnType() { return returnType; }
+
   private Type[] argumentTypes;
   public  int    getArity() { return argumentTypes.length; }
 
