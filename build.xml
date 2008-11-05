@@ -115,7 +115,16 @@
 
         <java classpath="${tests-integration-pos}:${bin}/runtime.jar" classname="${@{file}-test-name}" fork="true" output="${tests-integration-pos}/${@{file}-test-name}.output-current" outputproperty="run-failure" />
 
-        <exec executable="diff" output="${tests-integration-pos}/${@{file}-test-name}.output-diff">
+        <exec executable="cat" output="${tests-integration-pos}/${@{file}-test-name}.output-diff">
+          <arg value="${tests-integration-pos}/${@{file}-test-name}.xpl" />
+        </exec>
+
+        <exec executable="echo" output="${tests-integration-pos}/${@{file}-test-name}.output-diff" append="true">
+          <arg value="---------------" />
+        </exec>
+
+        <exec executable="diff" output="${tests-integration-pos}/${@{file}-test-name}.output-diff" append="true">
+          <arg value="-y"/>
           <arg value="${tests-integration-pos}/${@{file}-test-name}.output-desired"/>
           <arg value="${tests-integration-pos}/${@{file}-test-name}.output-current"/>
         </exec>

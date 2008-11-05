@@ -54,7 +54,7 @@ assignment:              IDENTIFIER<VariableNode> '='^ expression;
 
 expression:              boolean_expression;
 
-boolean_expression:      comparision_expression (('&&' | '||')^ boolean_expression)?;
+boolean_expression:      comparision_expression (('&&' | '||')^ comparision_expression)*;
 
 comparision_expression:  binary_expression (('==' | '<=' | '>=' | '<' | '>')^ binary_expression)?;
 
