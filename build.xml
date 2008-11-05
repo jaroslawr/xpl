@@ -3,6 +3,7 @@
     Builds the Xpl compiler and runs the associated unit and integration tests.
   </description>
 
+  <property name="doc"                      location="doc" />
   <property name="src"                      location="src" />
   <property name="src-xpl"                  location="${src}/xpl" />
   <property name="src-semantic"             location="${src}/xpl/semantic" />
@@ -157,7 +158,15 @@
     </junit>
   </target>
 
+  <target name="doc" description="generate JavaDoc documentation" depends="integration-test">
+    <javadoc packagenames="xpl.*" sourcepath="${src}" destdir="${doc}" author="true" version="true" charset="utf-8" />
+  </target>
+
   <target name="clean" description="clean up">
+    <delete includeemptydirs="true">
+      <fileset dir="${doc}" includes="**/*"/>
+    </delete>
+
     <delete>
       <fileset dir="${classes}" includes="**/*.class"/>
     </delete>

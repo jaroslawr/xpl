@@ -107,7 +107,7 @@ expression
     : boolean_expression { $start.setNodeType($boolean_expression.start.getNodeType()); };
 
 boolean_expression
-    :  ^(('&&' | '||') a=comparision_expression b=boolean_expression)
+    :  ^(('&&' | '||') a=boolean_expression b=boolean_expression)
     |  comparision_expression { $start.setNodeType($comparision_expression.start.getNodeType()); }
     ;
 

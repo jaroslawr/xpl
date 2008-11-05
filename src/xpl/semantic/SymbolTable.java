@@ -2,12 +2,24 @@ package xpl.semantic;
 
 import xpl.semantic.symbols.*;
 
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Opcodes;
-
 import java.util.*;
 
-public class SymbolTable implements Opcodes {
+/**
+ * The symbol table is used during semantic analysis to store
+ * informations about encountered symbols, and provide you with those
+ * informations later on when you're encountering the symbols defined
+ * previously. Currently it uses a linked list of Frames for storing
+ * symbols, through another approach will be needed for implementing
+ * method overloading.
+ *
+ * @author Jarosław Rzeszótko
+ */
+
+public class SymbolTable {
+  /**
+   * Creates a new symbol table populated with the globally available
+   * methods from the Runtime class
+   */
   public SymbolTable() {
     enterNewFrame();
 
@@ -21,24 +33,65 @@ public class SymbolTable implements Opcodes {
 
   private Frame current = null;
 
-  public Identifier findIdentifier(String name) { return current.find(name, Identifier.class); }
-  public Argument   findArgument  (String name) { return current.find(name, Argument.class);   }
-  public Variable   findVariable  (String name) { return current.find(name, Variable.class);   }
-  public Method     findMethod    (String name) { return current.find(name, Method.class);     }
+  /**
+   * Find an Identifier symbol, meaning either a (method) Argument or a
+   * Variable, in the current scope
+   *
+   * @param name The name of the identifier
+   */
+  public Identifier findIdentifier(String name) {
+    return current.find(name, Identifier.class);
+  }
 
+  /**
+   * Find an Argument symbol
+   *
+   * @param name The name of the argument
+   */
+  public Argument findArgument(String name) {
+    return current.find(name, Argument.class);
+  }
+
+  /**
+   * Find a Variable symbol
+   *
+   * @param name The name of the variable
+   */
+  public Variable findVariable(String name) {
+    return current.find(name, Variable.class);
+  }
+
+  /**
+   * Find a Method symbol
+   *
+   * @param name The name of the variable
+   */
+  public Method findMethod(String name) {
+    return current.find(name, Method.class);
+  }
+
+
+  /**
+   * Put a new symbol in the current frame
+   *
+   * @param sym The new symbol
+   */
   public void put(Symbol sym) {
     current.put(sym.getName(), sym);
   }
 
-  public void enterFrame(int id) {
-    current = frames.get(id);
-  }
-
+  /**
+   * Creates a new frame with the current frame as it parent and makes
+   * it the new current frame.
+   */
   public void enterNewFrame() {
     current = new Frame(current);
     frames.add(current);
   }
 
+  /**
+   * Makes the parent of the current frame the new current frame
+   */
   public void exitFrame()  {
     current = current.getParent();
   }

@@ -94,8 +94,8 @@ expression
     : boolean_expression;
 
 boolean_expression
-    :  ^('&&' a=comparision_expression b=boolean_expression) { generate.bool().and(); }
-    |  ^('||' a=comparision_expression b=boolean_expression) { generate.bool().or(); }
+    :  ^('&&' a=boolean_expression b=boolean_expression) { generate.bool().and(); }
+    |  ^('||' a=boolean_expression b=boolean_expression) { generate.bool().or(); }
     |  comparision_expression;
 
 comparision_expression
@@ -133,6 +133,7 @@ atom
     :  NUMBER     { generate.misc().load(Integer.parseInt($NUMBER.text)); }
     |  IDENTIFIER { generate.misc().loadVariable((IdentifierNode)$IDENTIFIER); }
     |  STRING     { generate.string().load(strip($STRING.text)); }
+    | '(' expression ')'
     |  call
     ;
 
