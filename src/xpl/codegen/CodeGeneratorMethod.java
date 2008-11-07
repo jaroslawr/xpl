@@ -9,11 +9,16 @@ import java.util.*;
 import org.objectweb.asm.MethodVisitor;
 
 public class CodeGeneratorMethod extends CodeGeneratorModule {
+  private Stack<MethodVisitor> methods = new Stack<MethodVisitor>();
+
   public CodeGeneratorMethod(Context context) {
     super(context);
   }
 
   public void definition(MethodNode definition) {
+    if(currentMethod != null)
+      methods.push(currentMethod);
+
     Method method = definition.getMethod();
     String name   = method.getName();
     MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC, name, method.getSignature(), null, null);
@@ -31,7 +36,7 @@ public class CodeGeneratorMethod extends CodeGeneratorModule {
     else
       currentMethod.visitInsn(ARETURN);
     currentMethod.visitMaxs(10, method.getArity() + 1);
-    context.leaveMethod();
+    context.switchMethodVisitor(methods.pop());
   }
 
   public void prepareCall() {

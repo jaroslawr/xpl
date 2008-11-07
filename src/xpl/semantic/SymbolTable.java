@@ -29,7 +29,6 @@ public class SymbolTable {
   }
 
   private ArrayList<Frame> frames = new ArrayList<Frame>();
-  public int getCurrentFrameId() { return frames.size()-1; }
 
   private Frame current = null;
 
@@ -69,7 +68,6 @@ public class SymbolTable {
   public Method findMethod(String name) {
     return current.find(name, Method.class);
   }
-
 
   /**
    * Put a new symbol in the current frame

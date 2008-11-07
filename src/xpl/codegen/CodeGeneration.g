@@ -41,7 +41,7 @@ atomic_operation
 
 method_definition
 @after { generate.method().finish((MethodNode)$start); }
-    :  ^(METHOD header=method_header[(MethodNode)$start] ^(PROGN atomic_operation+));
+    :  ^(METHOD header=method_header[(MethodNode)$start] ^(PROGN (atomic_operation | method_definition)+));
 
 method_header[MethodNode methodNode] returns [int argumentsCount]
     :  ^(name=IDENTIFIER ((TYPE args+=IDENTIFIER)+)? return_type=TYPE) {

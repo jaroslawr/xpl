@@ -126,6 +126,7 @@
 
         <exec executable="diff" output="${tests-integration-pos}/${@{file}-test-name}.output-diff" append="true">
           <arg value="-y"/>
+          <arg value="-W 180"/>
           <arg value="${tests-integration-pos}/${@{file}-test-name}.output-desired"/>
           <arg value="${tests-integration-pos}/${@{file}-test-name}.output-current"/>
         </exec>

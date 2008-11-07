@@ -43,8 +43,4 @@ public class Context {
     for(CodeGeneratorModule observer : observers)
       observer.classChanged(className, classWriter);
   }
-
-  public void leaveMethod() {
-    switchMethodVisitor(runMethodVisitor);
-  }
 }

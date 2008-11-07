@@ -33,7 +33,7 @@ options {
 }
 
 program
-@after { if(!errors.isEmpty()) throw new SemanticAnalysisError(); }
+ @after { if(!errors.isEmpty()) throw new SemanticAnalysisError(); }
     : (method_definition | atomic_operation)+;
 catch [RecognitionException re] {
     throw re;
@@ -44,7 +44,7 @@ atomic_operation
 
 method_definition
 @after { symbolTable.exitFrame(); }
-    :  ^(METHOD method_header ^(PROGN atomic_operation+)) {
+    :  ^(METHOD method_header ^(PROGN (atomic_operation | method_definition)+)) {
             ((MethodNode)$start).setMethod($method_header.method);
         };
 
@@ -72,7 +72,9 @@ method_header returns [Method method]
         };
 
 conditional
-    :  ^(IF expression ^(PROGN atomic_operation+) (^(PROGN atomic_operation+) { $conditional.start.hasElse = true; })?);
+    :  ^(IF expression ^(PROGN atomic_operation+) (^(PROGN atomic_operation+) {
+                $conditional.start.hasElse = true;
+            })?);
 
 loop
     :  ^(WHILE expression ^(PROGN atomic_operation+));
@@ -104,28 +106,46 @@ assignment
         };
 
 expression
-    : boolean_expression { $start.setNodeType($boolean_expression.start.getNodeType()); };
+    : boolean_expression {
+                $start.setNodeType($boolean_expression.start.getNodeType());
+            };
 
 boolean_expression
     :  ^(('&&' | '||') a=boolean_expression b=boolean_expression)
-    |  comparision_expression { $start.setNodeType($comparision_expression.start.getNodeType()); }
+    |  comparision_expression {
+                $start.setNodeType($comparision_expression.start.getNodeType());
+            }
     ;
 
 comparision_expression
     :  ^(('==' | '<=' | '>=' | '<' | '>') a=binary_expression b=binary_expression)
-    |  binary_expression { $start.setNodeType($binary_expression.start.getNodeType()); }
-    |  addition          { $start.setNodeType($addition.start.getNodeType()); }
+    |  binary_expression {
+                $start.setNodeType($binary_expression.start.getNodeType());
+            }
+    |  addition {
+                $start.setNodeType($addition.start.getNodeType());
+            }
     ;
 
 binary_expression
-    :  ^(('-' | '*' | '/' | '%') a=binary_expression b=binary_expression) { TypeChecker.infer($start, $a.start, $b.start); }
-    | '(' expr=binary_expression ')' { $start.setNodeType($expr.start.getNodeType()); }
-    | atom                           { $start.setNodeType($atom.start.getNodeType()); }
+    :  ^(('-' | '*' | '/' | '%') a=binary_expression b=binary_expression) {
+            TypeChecker.infer($start, $a.start, $b.start);
+        }
+    | '(' expr=binary_expression ')' {
+            $start.setNodeType($expr.start.getNodeType());
+        }
+    | atom {
+            $start.setNodeType($atom.start.getNodeType());
+        }
     ;
 
 atom
-    :  NUMBER     { $NUMBER.setNodeType(Types.Integer); }
-    |  STRING     { $STRING.setNodeType(Types.String); }
+    :  NUMBER {
+            $NUMBER.setNodeType(Types.Integer);
+        }
+    |  STRING {
+            $STRING.setNodeType(Types.String);
+        }
     |  IDENTIFIER {
             Identifier identifier = symbolTable.findIdentifier($IDENTIFIER.text);
             if(identifier != null)
@@ -136,29 +156,39 @@ atom
     ;
 
 addition
-    :  ^('+' string_plus_fold binary_expression) { TypeChecker.infer($start, $string_plus_fold.start, $binary_expression.start); }
+    :  ^('+' string_plus_fold binary_expression) {
+            TypeChecker.infer($start, $string_plus_fold.start, $binary_expression.start);
+        }
        -> { $start.isOf(Types.String) }? ^(STRING_PLUS string_plus_fold binary_expression)
        ->                                ^('+' string_plus_fold binary_expression)
-    | string_plus_fold                   { $start.setNodeType($string_plus_fold.start.getNodeType()); }
+    | string_plus_fold {
+            $start.setNodeType($string_plus_fold.start.getNodeType());
+        }
     ;
 
 string_plus_fold
-    :  ^('+' (exps+=binary_expression)+) { TypeChecker.infer($start, $exps); }
+    :  ^('+' (exps+=binary_expression)+) {
+            TypeChecker.infer($start, $exps);
+        }
         -> {$start.isOf(Types.String)}? binary_expression+
         -> ^('+' binary_expression+)
-    |  ^('+' rest=string_plus_fold exp=binary_expression) { TypeChecker.infer($start, $rest.start, $exp.start); }
+    |  ^('+' rest=string_plus_fold exp=binary_expression) {
+            TypeChecker.infer($start, $rest.start, $exp.start);
+        }
         -> {$start.isOf(Types.String)}?   $rest $exp
         -> ^('+' $rest $exp)
-    |  atom { $start.setNodeType($atom.start.getNodeType()); }
+    |  atom {
+            $start.setNodeType($atom.start.getNodeType());
+        }
     ;
 
 return_expression
-    :   ^(RETURN expression)
+    :  ^(RETURN expression)
     ;
 
 call
-    :   ^(CALL IDENTIFIER ^(CALL_ARGUMENTS expression+)) {
-        Method method = symbolTable.findMethod($IDENTIFIER.text);
-        ((MethodNode)$start).setMethod(method);
-    }
+    :  ^(CALL IDENTIFIER ^(CALL_ARGUMENTS expression+)) {
+            Method method = symbolTable.findMethod($IDENTIFIER.text);
+            ((MethodNode)$start).setMethod(method);
+        }
     ;

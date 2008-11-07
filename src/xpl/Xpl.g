@@ -29,11 +29,13 @@ catch [RecognitionException re] { throw re; }
 
 atomic_operation:        conditional | loop | assignment | variable_definition | expression | return_expression;
 
-method_definition:       method_header atomic_operation+ 'end' -> ^(METHOD<node=MethodNode> method_header ^(PROGN atomic_operation+));
+method_definition:       method_header method_operation+ 'end' -> ^(METHOD<node=MethodNode> method_header ^(PROGN method_operation+));
 
 method_header:           'fn' IDENTIFIER '(' method_arguments? ')' '-' '>' TYPE -> ^(IDENTIFIER method_arguments? TYPE<TypeNode>);
 
 method_arguments:        variable_declaration (','! variable_declaration)*;
+
+method_operation:        atomic_operation | method_definition;
 
 return_expression:       'return' expression -> ^(RETURN expression);
 
@@ -72,7 +74,7 @@ NUMBER:    	             ('0'..'9')+;
 
 TYPE:                    'int' | 'string';
 
-IDENTIFIER:              ('a'..'z')+;
+IDENTIFIER:              ('a'..'z' | '_')+;
 
 NEWLINE:                 ('\n')+ { emit(); skip(); };
 
