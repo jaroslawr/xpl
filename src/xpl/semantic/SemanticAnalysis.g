@@ -156,30 +156,20 @@ atom
     ;
 
 addition
-    :  ^('+' string_plus_fold binary_expression) {
-            TypeChecker.infer($start, $string_plus_fold.start, $binary_expression.start);
+    :  ^('+' a=addition_flatten b=addition_flatten) {
+            TypeChecker.infer($start, $a.start, $b.start);
         }
-       -> { $start.isOf(Types.String) }? ^(STRING_PLUS string_plus_fold binary_expression)
-       ->                                ^('+' string_plus_fold binary_expression)
-    | string_plus_fold {
-            $start.setNodeType($string_plus_fold.start.getNodeType());
-        }
+        -> {$start.isOf(Types.String)}? ^(STRING_PLUS addition_flatten+)
+        -> ^('+' addition_flatten+)
     ;
 
-string_plus_fold
-    :  ^('+' (exps+=binary_expression)+) {
-            TypeChecker.infer($start, $exps);
+addition_flatten
+    :  ^('+' (operands+=addition_flatten)+) {
+            TypeChecker.infer($start, $operands);
         }
-        -> {$start.isOf(Types.String)}? binary_expression+
-        -> ^('+' binary_expression+)
-    |  ^('+' rest=string_plus_fold exp=binary_expression) {
-            TypeChecker.infer($start, $rest.start, $exp.start);
-        }
-        -> {$start.isOf(Types.String)}?   $rest $exp
-        -> ^('+' $rest $exp)
-    |  atom {
-            $start.setNodeType($atom.start.getNodeType());
-        }
+        -> {$start.isOf(Types.String)}? addition_flatten+
+        -> ^('+' addition_flatten+)
+    |  binary_expression -> binary_expression
     ;
 
 return_expression
@@ -188,7 +178,9 @@ return_expression
 
 call
     :  ^(CALL IDENTIFIER ^(CALL_ARGUMENTS expression+)) {
-            Method method = symbolTable.findMethod($IDENTIFIER.text);
-            ((MethodNode)$start).setMethod(method);
+            Method method  = symbolTable.findMethod($IDENTIFIER.text);
+            MethodNode node = ((MethodNode)$start);
+            node.setMethod(method);
+            node.setNodeType(method.getReturnType());
         }
     ;
