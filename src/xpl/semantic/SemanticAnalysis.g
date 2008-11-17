@@ -30,6 +30,22 @@ options {
         errors.add("Line " + line + ": " + message);
         throw new RecognitionException(input);
     }
+
+    public Method findMatchingMethod(String name, Type[] callSignature) {
+        List<Symbol> methods  = symbolTable.findMethods(name, callSignature.length);
+
+        lookup:
+        for(Symbol sym : methods) {
+            Method tried = (Method) sym;
+            Type[] desiredTypes = tried.getArgumentTypes();
+            for(int i = 0; i < desiredTypes.length; i++)
+                if(!desiredTypes[i].equals(callSignature[i]))
+                    continue lookup;
+            return tried;
+        }
+
+        return null;
+    }
 }
 
 program
@@ -43,7 +59,7 @@ atomic_operation
     :  (conditional | loop | variable_definition | assignment | expression | return_expression);
 
 method_definition
-@after { symbolTable.exitFrame(); }
+@after { symbolTable.exitScope(); }
     :  ^(METHOD method_header ^(PROGN (atomic_operation | method_definition)+)) {
             ((MethodNode)$start).setMethod($method_header.method);
         };
@@ -59,13 +75,13 @@ method_header returns [Method method]
                 TypeNode typeNode = (TypeNode) $types.get(i);
 
                 Type type = typeNode.getRepresentedType();
-                arguments.add(new Argument(type, idNode.getText(), i+1));
+                arguments.add(new Argument(symbolTable.getCurrentScopeId(), type, idNode.getText(), i+1));
                 argumentTypes[i] = type;
             }
 
-            Method method = new Method(returnTypeNode.getRepresentedType(), $name.text, argumentTypes);
+            Method method = new Method(symbolTable.getCurrentScopeId(), returnTypeNode.getRepresentedType(), $name.text, argumentTypes);
             symbolTable.put(method);
-            symbolTable.enterNewFrame();
+            symbolTable.enterScope();
             for(Argument arg : arguments)
                 symbolTable.put(arg);
             $method = method;
@@ -91,7 +107,7 @@ variable_definition
             if(!lType.equals(rType))
               error(input, $name.line, "the declared type isn't the same as the r-value type");
 
-            Variable variable = new Variable(lType, $name.text, variableId++);
+            Variable variable = new Variable(symbolTable.getCurrentScopeId(), lType, $name.text, variableId++);
             symbolTable.put(variable);
             ((VariableNode)$name).setVariable(variable);
         };
@@ -111,48 +127,36 @@ expression
             };
 
 boolean_expression
-    :  ^(('&&' | '||') a=boolean_expression b=boolean_expression)
+    :  ^(('&&' | '||') a=boolean_expression b=boolean_expression) {
+            TypeChecker.infer($start, $a.start, $b.start);
+        }
     |  comparision_expression {
-                $start.setNodeType($comparision_expression.start.getNodeType());
-            }
+            $start.setNodeType($comparision_expression.start.getNodeType());
+        }
     ;
 
 comparision_expression
-    :  ^(('==' | '<=' | '>=' | '<' | '>') a=binary_expression b=binary_expression)
+    :  ^(('==' | '<=' | '>=' | '<' | '>') a=binary_expression b=binary_expression) {
+            TypeChecker.infer($start, $a.start, $b.start);
+        }
     |  binary_expression {
-                $start.setNodeType($binary_expression.start.getNodeType());
-            }
-    |  addition {
-                $start.setNodeType($addition.start.getNodeType());
-            }
+            $start.setNodeType($binary_expression.start.getNodeType());
+        }
     ;
 
 binary_expression
-    :  ^(('-' | '*' | '/' | '%') a=binary_expression b=binary_expression) {
+    :  addition {
+            $start.setNodeType($addition.start.getNodeType());
+        }
+    |  ^(('-' | '*' | '/' | '%') a=binary_expression b=binary_expression) {
             TypeChecker.infer($start, $a.start, $b.start);
         }
-    | '(' expr=binary_expression ')' {
+    |  '(' expr=binary_expression ')' {
             $start.setNodeType($expr.start.getNodeType());
         }
-    | atom {
+    |  atom {
             $start.setNodeType($atom.start.getNodeType());
         }
-    ;
-
-atom
-    :  NUMBER {
-            $NUMBER.setNodeType(Types.Integer);
-        }
-    |  STRING {
-            $STRING.setNodeType(Types.String);
-        }
-    |  IDENTIFIER {
-            Identifier identifier = symbolTable.findIdentifier($IDENTIFIER.text);
-            if(identifier != null)
-                $IDENTIFIER.setNodeType(identifier.getType());
-            ((IdentifierNode)$IDENTIFIER).setIdentifier(identifier);
-        }
-    |  call
     ;
 
 addition
@@ -172,15 +176,43 @@ addition_flatten
     |  binary_expression -> binary_expression
     ;
 
+atom
+    :  NUMBER {
+            $NUMBER.setNodeType(Types.Integer);
+        }
+    |  STRING {
+            $STRING.setNodeType(Types.String);
+        }
+    |  IDENTIFIER {
+            Identifier identifier = symbolTable.findIdentifier($IDENTIFIER.text);
+            if(identifier != null)
+                $IDENTIFIER.setNodeType(identifier.getType());
+            ((IdentifierNode)$IDENTIFIER).setIdentifier(identifier);
+        }
+    |  call
+    ;
+
 return_expression
     :  ^(RETURN expression)
     ;
 
 call
-    :  ^(CALL IDENTIFIER ^(CALL_ARGUMENTS expression+)) {
-            Method method  = symbolTable.findMethod($IDENTIFIER.text);
-            MethodNode node = ((MethodNode)$start);
-            node.setMethod(method);
-            node.setNodeType(method.getReturnType());
+    :  ^(CALL IDENTIFIER ^(CALL_ARGUMENTS (args+=expression)+)) {
+          Type[] callSignature = new Type[$args.size()];
+          for(int i = 0; i < $args.size(); i++) {
+            ASTNode node = (ASTNode)$args.get(i);
+            callSignature[i] = node.getNodeType();
+          }
+
+          Method method = findMatchingMethod($IDENTIFIER.text, callSignature);
+
+          if(method == null) {
+            error(input, $IDENTIFIER.line, "no method " + $IDENTIFIER.text + " with this signature");
+            return null;
+          }
+
+          MethodNode node = ((MethodNode)$start);
+          node.setMethod(method);
+          node.setNodeType(method.getReturnType());
         }
     ;

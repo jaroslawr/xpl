@@ -3,8 +3,8 @@ package xpl.semantic.symbols;
 import xpl.semantic.Type;
 
 public abstract class Identifier extends Symbol {
-  public Identifier(Type type, String name) {
-    super(name);
+  public Identifier(int scopeId, Type type, String name) {
+    super(scopeId, name);
     this.type = type;
   }
 

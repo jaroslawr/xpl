@@ -1,100 +1,112 @@
 package xpl.semantic;
 
-import xpl.semantic.symbols.*;
-
 import java.util.*;
+
+import xpl.semantic.symbols.*;
 
 /**
  * The symbol table is used during semantic analysis to store
- * informations about encountered symbols, and provide you with those
- * informations later on when you're encountering the symbols defined
- * previously. Currently it uses a linked list of Frames for storing
- * symbols, through another approach will be needed for implementing
- * method overloading.
+ * informations about encountered symbols, and provide you with them
+ * later on when you're encountering the symbols that were defined
+ * previously. The current implemenation is loosely based on the
+ * seminal paper by LeBlanc and Cook - "A Symbol Table Abstraction to
+ * Implement Languages with Explicit Scope Control"
  *
  * @author Jarosław Rzeszótko
  */
-
 public class SymbolTable {
   /**
-   * Creates a new symbol table populated with the globally available
-   * methods from the Runtime class
+   * Constructs an empty symbol table and populates it with the
+   * globally available runtime methods
    */
   public SymbolTable() {
-    enterNewFrame();
+    enterScope();
 
-    current.put("puts",  new Method(Types.Void,    "puts",  new Type[] { Types.String  }, true));
-    current.put("print", new Method(Types.Void,    "print", new Type[] { Types.Integer }, true));
-    current.put("power", new Method(Types.Integer, "power", new Type[] { Types.Integer, Types.Integer }, true));
+    put(new Method(0, Types.Void,    "puts",  new Type[] { Types.String  }, true));
+    put(new Method(0, Types.Void,    "print", new Type[] { Types.Integer }, true));
+    put(new Method(0, Types.Integer, "power", new Type[] { Types.Integer, Types.Integer }, true));
   }
 
-  private ArrayList<Frame> frames = new ArrayList<Frame>();
-
-  private Frame current = null;
+  /**
+   * Creates a new scope and enters it
+   * @param scopeId The id to give to the newly created scope
+   */
+  public void enterScope() {
+    scopes.push(new Integer(++currentScopeId));
+  }
 
   /**
-   * Find an Identifier symbol, meaning either a (method) Argument or a
-   * Variable, in the current scope
+   * Exits from the current scope, returning its id
+   */
+  public int exitScope() {
+    return scopes.pop();
+  }
+
+  /**
+   * Returns the id of the current scope, needed for symbol creation.
+   */
+  public int getCurrentScopeId() {
+    return currentScopeId;
+  }
+
+  /**
+   * Add a symbol to the current scope
    *
-   * @param name The name of the identifier
+   * @param symbol The symbol to add
+   */
+  public void put(Symbol symbol) {
+    symbols.put(symbol.getName(), symbol);
+  }
+
+  /**
+   * Finds the symbol represting the innermost definition of the given
+   * identifier (representing an argument or local variable)
+   *
+   * @param name The name of the sought identifier
    */
   public Identifier findIdentifier(String name) {
-    return current.find(name, Identifier.class);
+    return (Identifier) symbols.get(name, symbolSelector.withType(Identifier.class));
   }
 
   /**
-   * Find an Argument symbol
+   * Finds the symbol represting the innermost definition of the given
+   * method argument
    *
    * @param name The name of the argument
    */
   public Argument findArgument(String name) {
-    return current.find(name, Argument.class);
+    return (Argument) symbols.get(name, symbolSelector.withType(Argument.class));
   }
 
   /**
-   * Find a Variable symbol
+   * Finds the symbol represting the innermost definition of the given
+   * variable
    *
    * @param name The name of the variable
    */
   public Variable findVariable(String name) {
-    return current.find(name, Variable.class);
+    return (Variable) symbols.get(name, symbolSelector.withType(Variable.class));
   }
 
   /**
-   * Find a Method symbol
+   * Finds all methods with a given name and arity (the number of
+   * parameters) returning them in a list, with the innermost
+   * definition first
    *
    * @param name The name of the variable
+   * @param arity The number of arguments of the looked up method
    */
-  public Method findMethod(String name) {
-    return current.find(name, Method.class);
+  public List<Symbol> findMethods(String name, int arity) {
+    return symbols.getAll(name, methodSelector.withArity(arity));
   }
 
-  /**
-   * Put a new symbol in the current frame
-   *
-   * @param sym The new symbol
-   */
-  public void put(Symbol sym) {
-    current.put(sym.getName(), sym);
-  }
+  private Stack<Integer> scopes = new Stack<Integer>();
 
-  /**
-   * Creates a new frame with the current frame as it parent and makes
-   * it the new current frame.
-   */
-  public void enterNewFrame() {
-    current = new Frame(current);
-    frames.add(current);
-  }
+  private HashMultiMap<String, Symbol> symbols = new HashMultiMap<String, Symbol>();
 
-  /**
-   * Makes the parent of the current frame the new current frame
-   */
-  public void exitFrame()  {
-    current = current.getParent();
-  }
+  private VisibleSymbolSelector symbolSelector = new VisibleSymbolSelector(scopes);
 
-  public String toString() {
-    return current.toString();
-  }
+  private VisibleMethodSelector methodSelector = new VisibleMethodSelector(scopes);
+
+  private int currentScopeId = -1;
 }

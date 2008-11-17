@@ -170,6 +170,7 @@
 
     <delete>
       <fileset dir="${classes}" includes="**/*.class"/>
+      <fileset dir="${tests-integration}" includes="**/*.class"/>
     </delete>
 
     <delete file="${src-xpl}/XplLexer.java"/>

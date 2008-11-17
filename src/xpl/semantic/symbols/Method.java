@@ -3,14 +3,14 @@ package xpl.semantic.symbols;
 import xpl.semantic.Type;
 
 public class Method extends Symbol {
-  public Method(Type returnType, String name, Type[] argumentTypes) {
-    super(name);
+  public Method(int scopeId, Type returnType, String name, Type[] argumentTypes) {
+    super(scopeId, name);
     this.returnType    = returnType;
     this.argumentTypes = argumentTypes;
   }
 
-  public Method(Type returnType, String name, Type[] argumentTypes, boolean builtin) {
-    this(returnType, name, argumentTypes);
+  public Method(int scopeId, Type returnType, String name, Type[] argumentTypes, boolean builtin) {
+    this(scopeId, returnType, name, argumentTypes);
     this.builtin = builtin;
   }
 
@@ -21,6 +21,7 @@ public class Method extends Symbol {
   public  Type   getReturnType() { return returnType; }
 
   private Type[] argumentTypes;
+  public  Type[] getArgumentTypes() { return argumentTypes; }
   public  int    getArity() { return argumentTypes.length; }
 
   public String getArgumentsSignature() {

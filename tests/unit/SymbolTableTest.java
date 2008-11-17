@@ -4,12 +4,14 @@ import static org.junit.Assert.*;
 import xpl.semantic.*;
 import xpl.semantic.symbols.*;
 
+import java.util.*;
+
 public class SymbolTableTest {
   @Test
   public void storesArguments() {
     SymbolTable table = new SymbolTable();
 
-    Argument argument = new Argument(Types.Integer, "foobar", 1);
+    Argument argument = new Argument(table.getCurrentScopeId(), Types.Integer, "foobar", 1);
     table.put(argument);
 
     Argument found = table.findArgument("foobar");
@@ -20,7 +22,7 @@ public class SymbolTableTest {
   public void storesLocalVariables() {
     SymbolTable table = new SymbolTable();
 
-    Variable variable = new Variable(Types.Integer, "foobar", 0);
+    Variable variable = new Variable(table.getCurrentScopeId(), Types.Integer, "foobar", 0);
     table.put(variable);
 
     Variable found = table.findVariable("foobar");
@@ -31,24 +33,28 @@ public class SymbolTableTest {
   public void storesMethods() {
     SymbolTable table = new SymbolTable();
 
-    Method method = new Method(Types.Integer, "foobar", new Type[] { Types.Integer, Types.Integer, Types.Integer });
+    Method method = new Method(table.getCurrentScopeId(), Types.Integer, "foobar", new Type[] { Types.Integer, Types.Integer, Types.Integer });
     table.put(method);
 
-    Method found = table.findMethod("foobar");
-    assertEquals(method, found);
+    List<Symbol> found = table.findMethods("foobar", 3);
+    assertEquals(1, found.size());
+    assertEquals(method, (Method) found.get(0));
   }
 
   @Test
   public void ignoresItemsOfDifferentTypeWhenLookingUpSymbols() {
-    SymbolTable   table    = new SymbolTable();
-    Method        method   = new Method(Types.Integer, "foobar", new Type[] { Types.Integer, Types.Integer, Types.Integer });
-    Variable      variable = new Variable(Types.Integer, "foobar", 0);
+    SymbolTable table = new SymbolTable();
 
+    Method method = new Method(table.getCurrentScopeId(), Types.Integer, "foobar", new Type[] { Types.Integer, Types.Integer, Types.Integer });
     table.put(method);
-    table.enterNewFrame();
+
+    table.enterScope();
+
+    Variable variable = new Variable(table.getCurrentScopeId(), Types.Integer, "foobar", 0);
     table.put(variable);
 
-    Method found = table.findMethod("foobar");
-    assertEquals(method, found);
+    List<Symbol> found = table.findMethods("foobar", 3);
+    assertEquals(method, (Method)found.get(0));
+    assertEquals(1, found.size());
   }
 }
