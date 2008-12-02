@@ -75,7 +75,7 @@ method_header returns [Method method]
                 TypeNode typeNode = (TypeNode) $types.get(i);
 
                 Type type = typeNode.getRepresentedType();
-                arguments.add(new Argument(symbolTable.getCurrentScopeId(), type, idNode.getText(), i+1));
+                arguments.add(new Argument(symbolTable.getNextScopeId(), type, idNode.getText(), i+1));
                 argumentTypes[i] = type;
             }
 
@@ -116,15 +116,15 @@ assignment
     :  ^('=' name=IDENTIFIER value=expression) {
           Variable variable = symbolTable.findVariable($name.text);
           if(variable == null)
-            error(input, $name.line, "using an undeclared variable");
+            error(input, $name.line, "using an undeclared variable '" + $name.text + "'");
           $start.setNodeType($value.start.getNodeType());
           ((VariableNode)$name).setVariable(variable);
         };
 
 expression
     : boolean_expression {
-                $start.setNodeType($boolean_expression.start.getNodeType());
-            };
+            $start.setNodeType($boolean_expression.start.getNodeType());
+        };
 
 boolean_expression
     :  ^(('&&' | '||') a=boolean_expression b=boolean_expression) {
@@ -145,11 +145,11 @@ comparision_expression
     ;
 
 binary_expression
-    :  addition {
-            $start.setNodeType($addition.start.getNodeType());
-        }
-    |  ^(('-' | '*' | '/' | '%') a=binary_expression b=binary_expression) {
+    :  ^(('-' | '*' | '/' | '%') a=binary_expression b=binary_expression) {
             TypeChecker.infer($start, $a.start, $b.start);
+        }
+    |  addition {
+            $start.setNodeType($addition.start.getNodeType());
         }
     |  '(' expr=binary_expression ')' {
             $start.setNodeType($expr.start.getNodeType());
@@ -160,20 +160,20 @@ binary_expression
     ;
 
 addition
-    :  ^('+' a=addition_flatten b=addition_flatten) {
+    : ^('+' a=addition_flatten b=addition_flatten) {
             TypeChecker.infer($start, $a.start, $b.start);
         }
-        -> {$start.isOf(Types.String)}? ^(STRING_PLUS addition_flatten+)
+        -> {$start.isOf(Types.String)}? ^(STRING_PLUS<ASTNode>[Types.String] addition_flatten+)
         -> ^('+' addition_flatten+)
     ;
 
 addition_flatten
-    :  ^('+' (operands+=addition_flatten)+) {
+    : ^('+' (operands+=addition_flatten)+) {
             TypeChecker.infer($start, $operands);
         }
         -> {$start.isOf(Types.String)}? addition_flatten+
         -> ^('+' addition_flatten+)
-    |  binary_expression -> binary_expression
+    | binary_expression
     ;
 
 atom
@@ -185,8 +185,10 @@ atom
         }
     |  IDENTIFIER {
             Identifier identifier = symbolTable.findIdentifier($IDENTIFIER.text);
-            if(identifier != null)
-                $IDENTIFIER.setNodeType(identifier.getType());
+            if(identifier == null)
+              error(input, $IDENTIFIER.line, "using an undeclared variable '" + $IDENTIFIER.text + "'");
+            else
+              $IDENTIFIER.setNodeType(identifier.getType());
             ((IdentifierNode)$IDENTIFIER).setIdentifier(identifier);
         }
     |  call
@@ -201,13 +203,18 @@ call
           Type[] callSignature = new Type[$args.size()];
           for(int i = 0; i < $args.size(); i++) {
             ASTNode node = (ASTNode)$args.get(i);
+            if(node == null)
+              throw new RecognitionException(input);
+
             callSignature[i] = node.getNodeType();
+            if(callSignature[i] == null)
+              throw new RecognitionException(input);
           }
 
           Method method = findMatchingMethod($IDENTIFIER.text, callSignature);
 
           if(method == null) {
-            error(input, $IDENTIFIER.line, "no method " + $IDENTIFIER.text + " with this signature");
+            error(input, $IDENTIFIER.line, "no method '" + $IDENTIFIER.text + "' with this signature");
             return null;
           }
 

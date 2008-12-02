@@ -10,10 +10,15 @@ public class ASTNode extends CommonTree {
   public ASTNode(Token t)                   { super(t); }
   public ASTNode(int ttype, String text)    { super(new CommonToken(ttype, text)); }
 
+  public ASTNode(int ttype, Type type) {
+    super(new CommonToken(ttype));
+    setNodeType(type);
+  }
+
   public ASTNode(ASTNode node) {
     super(node.getToken());
+    setNodeType(node.nodeType);
 
-    this.nodeType = node.nodeType;
     this.hasElse  = node.hasElse;
   }
 

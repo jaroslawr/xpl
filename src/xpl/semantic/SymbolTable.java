@@ -22,7 +22,7 @@ public class SymbolTable {
   public SymbolTable() {
     enterScope();
 
-    put(new Method(0, Types.Void,    "puts",  new Type[] { Types.String  }, true));
+    put(new Method(0, Types.Void,    "print", new Type[] { Types.String  }, true));
     put(new Method(0, Types.Void,    "print", new Type[] { Types.Integer }, true));
     put(new Method(0, Types.Integer, "power", new Type[] { Types.Integer, Types.Integer }, true));
   }
@@ -32,21 +32,31 @@ public class SymbolTable {
    * @param scopeId The id to give to the newly created scope
    */
   public void enterScope() {
-    scopes.push(new Integer(++currentScopeId));
+    scopes.push(new Integer(++nextScopeId));
+    currentScopeId = nextScopeId;
   }
 
   /**
    * Exits from the current scope, returning its id
    */
   public int exitScope() {
+    currentScopeId--;
     return scopes.pop();
   }
 
   /**
-   * Returns the id of the current scope, needed for symbol creation.
+   * Returns the id of the current scope.
    */
   public int getCurrentScopeId() {
     return currentScopeId;
+  }
+
+  /**
+   * Returns the id that will be given to the next scope entered,
+   * needed for symbol creation.
+   */
+  public int getNextScopeId() {
+    return nextScopeId + 1;
   }
 
   /**
@@ -108,5 +118,6 @@ public class SymbolTable {
 
   private VisibleMethodSelector methodSelector = new VisibleMethodSelector(scopes);
 
+  private int nextScopeId = -1;
   private int currentScopeId = -1;
 }

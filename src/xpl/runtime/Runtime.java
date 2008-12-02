@@ -1,7 +1,7 @@
 package xpl.runtime;
 
 public class Runtime {
-  public static void puts(String s) {
+  public static void print(String s) {
     System.out.println(s);
   }
 

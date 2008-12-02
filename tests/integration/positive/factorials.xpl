@@ -8,11 +8,11 @@ fn factorial(int n) -> int
   result
 end
 
-puts("Factorials")
-puts("-------------------------------")
+print("Factorials")
+print("-------------------------------")
 
 int n = 1
 while n < 10
-  puts("factorial(" + n + "): " + factorial(n))
+  print("factorial(" + n + "): " + factorial(n))
   n = n + 1
 end

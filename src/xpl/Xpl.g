@@ -72,7 +72,7 @@ STRING:                  '\"' (options {greedy=false;}: ('A'..'z') | ' ' | '(' |
 
 NUMBER:    	             ('0'..'9')+;
 
-TYPE:                    'int' | 'string';
+TYPE:                    'int' | 'string' | 'void';
 
 IDENTIFIER:              ('a'..'z' | '_')+;
 

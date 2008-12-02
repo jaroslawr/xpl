@@ -15,4 +15,8 @@ public abstract class Symbol {
 
   protected int scopeId;
   public    int getScopeId() { return scopeId; }
+
+  public String toString() {
+    return "[" + scopeId + "]: " + name;
+  }
 }

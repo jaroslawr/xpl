@@ -14,6 +14,8 @@ public class TypeNode extends ASTNode {
       representedType = Types.Integer;
     else if(tok.getText().equals("string"))
       representedType = Types.String;
+    else if(tok.getText().equals("void"))
+      representedType = Types.Void;
   }
 
   public TypeNode(TypeNode node) { super(node); }

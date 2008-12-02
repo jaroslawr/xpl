@@ -33,8 +33,10 @@ public class CodeGeneratorMethod extends CodeGeneratorModule {
     Method method = definition.getMethod();
     if(method.getReturnType().equals(Types.Integer))
       currentMethod.visitInsn(IRETURN);
-    else
+    else if(method.getReturnType().equals(Types.String))
       currentMethod.visitInsn(ARETURN);
+    else
+      currentMethod.visitInsn(RETURN);
     currentMethod.visitMaxs(10, method.getArity() + 1);
     context.switchMethodVisitor(methods.pop());
   }

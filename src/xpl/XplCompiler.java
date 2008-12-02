@@ -83,8 +83,6 @@ public class XplCompiler {
     semanticAnalysis.setTreeAdaptor(adaptor);
     semanticAnalysis.program();
 
-    System.out.println(ast.toStringTree());
-
     nodes  = new CommonTreeNodeStream((CommonTree) ast);
     nodes.setTokenStream(tokens);
   }
@@ -94,3 +92,4 @@ public class XplCompiler {
     codeGeneration.program();
   }
 }
+

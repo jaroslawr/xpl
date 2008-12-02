@@ -34,4 +34,8 @@ public class Method extends Symbol {
   public String getSignature() {
     return "(" + getArgumentsSignature() + ")" + returnType.getSignature();
   }
+
+  public String toString() {
+    return super.toString() + ", method";
+  }
 }

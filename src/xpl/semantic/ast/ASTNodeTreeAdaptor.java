@@ -1,5 +1,7 @@
 package xpl.semantic.ast;
 
+import xpl.semantic.Type;
+
 import org.antlr.runtime.*;
 import org.antlr.runtime.tree.*;
 

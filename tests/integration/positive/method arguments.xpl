@@ -10,4 +10,4 @@ fn times(int n, string what) -> string
   result
 end
 
-puts(times(5,"hello "))
+print(times(5,"hello "))

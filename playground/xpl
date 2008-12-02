@@ -1,2 +1,2 @@
 #!/bin/bash
-java -jar ../bin/xpl.jar $@
+java -jar ../bin/xpl.jar "$@"

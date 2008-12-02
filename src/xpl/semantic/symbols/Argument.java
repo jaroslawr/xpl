@@ -10,4 +10,8 @@ public class Argument extends Identifier {
 
   private int id;
   public  int getId() { return id; }
+
+  public String toString() {
+    return super.toString() + ", argument";
+  }
 }
