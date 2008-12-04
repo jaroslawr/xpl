@@ -31,21 +31,22 @@ public class SymbolTableTest {
 
   @Test
   public void storesMethods() {
-    SymbolTable table = new SymbolTable();
+    SymbolTable table  = new SymbolTable();
+    Type[]      sig    = new Type[] { Types.Integer, Types.Integer, Types.Integer };
+    Method      method = new Method(table.getCurrentScopeId(), Types.Integer, "foobar", sig);
 
-    Method method = new Method(table.getCurrentScopeId(), Types.Integer, "foobar", new Type[] { Types.Integer, Types.Integer, Types.Integer });
     table.put(method);
 
-    List<Symbol> found = table.findMethods("foobar", 3);
-    assertEquals(1, found.size());
-    assertEquals(method, (Method) found.get(0));
+    Method found = table.findMethod("foobar", sig);
+    assertEquals(method, found);
   }
 
   @Test
   public void ignoresItemsOfDifferentTypeWhenLookingUpSymbols() {
-    SymbolTable table = new SymbolTable();
+    SymbolTable table  = new SymbolTable();
+    Type[]      sig    = new Type[] { Types.Integer, Types.Integer, Types.Integer };
+    Method      method = new Method(table.getCurrentScopeId(), Types.Integer, "foobar", sig);
 
-    Method method = new Method(table.getCurrentScopeId(), Types.Integer, "foobar", new Type[] { Types.Integer, Types.Integer, Types.Integer });
     table.put(method);
 
     table.enterScope();
@@ -53,8 +54,7 @@ public class SymbolTableTest {
     Variable variable = new Variable(table.getCurrentScopeId(), Types.Integer, "foobar", 0);
     table.put(variable);
 
-    List<Symbol> found = table.findMethods("foobar", 3);
-    assertEquals(method, (Method)found.get(0));
-    assertEquals(1, found.size());
+    Method found = table.findMethod("foobar", sig);
+    assertEquals(method, found);
   }
 }

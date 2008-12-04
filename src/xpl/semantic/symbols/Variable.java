@@ -14,6 +14,6 @@ public class Variable extends Identifier {
   }
 
   public String toString() {
-    return super.toString() + ", variable";
+    return "(" + super.toString() + ", variable)";
   }
 }

@@ -62,4 +62,8 @@ public class HashMultiMap<K, V> {
     }
     return result;
   }
+
+  public String toString() {
+    return entries.toString();
+  }
 }

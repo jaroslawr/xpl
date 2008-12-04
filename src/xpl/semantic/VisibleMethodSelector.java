@@ -10,23 +10,30 @@ public class VisibleMethodSelector implements Selector<Symbol> {
   }
 
   public boolean select(Symbol symbol) {
+    lookup:
     for (ListIterator<Integer> it = scopes.listIterator(scopes.size()); it.hasPrevious();) {
       int scopeId = it.previous();
       if(Method.class.isInstance(symbol)) {
-	Method method = (Method) symbol;
-	if(method.getScopeId() == scopeId && method.getArity() == arity)
+	Method tried = (Method) symbol;
+	if(tried.getScopeId() == scopeId) {
+	  Type[] triedSignature = tried.getArgumentTypes();
+	  for(int i = 0; i < triedSignature.length; i++)
+	    if(!triedSignature[i].equals(callSignature[i]))
+	      continue lookup;
+
 	  return true;
+	}
       }
     }
     return false;
   }
 
-  public VisibleMethodSelector withArity(int arity) {
-    this.arity = arity;
+  public VisibleMethodSelector withCallSignature(Type[] callSignature) {
+    this.callSignature = callSignature;
     return this;
   }
 
-  private int arity = 0;
+  private Type[] callSignature;
 
   private Stack<Integer> scopes;
 }

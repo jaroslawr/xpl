@@ -40,8 +40,9 @@ public class SymbolTable {
    * Exits from the current scope, returning its id
    */
   public int exitScope() {
-    currentScopeId--;
-    return scopes.pop();
+    int result = scopes.pop();
+    currentScopeId = scopes.peek();
+    return result;
   }
 
   /**
@@ -106,8 +107,12 @@ public class SymbolTable {
    * @param name The name of the variable
    * @param arity The number of arguments of the looked up method
    */
-  public List<Symbol> findMethods(String name, int arity) {
-    return symbols.getAll(name, methodSelector.withArity(arity));
+  public Method findMethod(String name, Type[] callSignature) {
+    return (Method) symbols.get(name, methodSelector.withCallSignature(callSignature));
+  }
+
+  public String toString() {
+    return symbols.toString();
   }
 
   private Stack<Integer> scopes = new Stack<Integer>();

@@ -36,6 +36,12 @@ public class Method extends Symbol {
   }
 
   public String toString() {
-    return super.toString() + ", method";
+    String result = "(" + super.toString() + ", method, signature: ";
+    for(Type type : argumentTypes) {
+      result += type.toString();
+      result += " ";
+    }
+    result += ")";
+    return result;
   }
 }

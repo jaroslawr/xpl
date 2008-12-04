@@ -30,22 +30,6 @@ options {
         errors.add("Line " + line + ": " + message);
         throw new RecognitionException(input);
     }
-
-    public Method findMatchingMethod(String name, Type[] callSignature) {
-        List<Symbol> methods  = symbolTable.findMethods(name, callSignature.length);
-
-        lookup:
-        for(Symbol sym : methods) {
-            Method tried = (Method) sym;
-            Type[] desiredTypes = tried.getArgumentTypes();
-            for(int i = 0; i < desiredTypes.length; i++)
-                if(!desiredTypes[i].equals(callSignature[i]))
-                    continue lookup;
-            return tried;
-        }
-
-        return null;
-    }
 }
 
 program
@@ -207,11 +191,12 @@ call
               throw new RecognitionException(input);
 
             callSignature[i] = node.getNodeType();
+
             if(callSignature[i] == null)
               throw new RecognitionException(input);
           }
 
-          Method method = findMatchingMethod($IDENTIFIER.text, callSignature);
+          Method method = symbolTable.findMethod($IDENTIFIER.text, callSignature);
 
           if(method == null) {
             error(input, $IDENTIFIER.line, "no method '" + $IDENTIFIER.text + "' with this signature");
