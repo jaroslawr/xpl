@@ -13,6 +13,9 @@ public class Type {
   public  String getName() { return name; }
 
   public String getSignature() {
+    if(name.equals("real"))
+      return "D";
+    
     if(name.equals("integer"))
       return "I";
 

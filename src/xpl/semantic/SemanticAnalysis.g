@@ -28,7 +28,6 @@ options {
 
     private void error(TreeNodeStream input, int line, String message) throws RecognitionException {
         errors.add("Line " + line + ": " + message);
-        throw new RecognitionException(input);
     }
 }
 
@@ -54,13 +53,17 @@ method_header returns [Method method]
             Type[]         argumentTypes  = new Type[$args.size()];
             TypeNode       returnTypeNode = (TypeNode) $return_type;
 
+            int argId = 1;
+
             for(int i = 0; i < $args.size(); i++) {
                 ASTNode  idNode   = (ASTNode)  $args.get(i);
                 TypeNode typeNode = (TypeNode) $types.get(i);
+                Type     type     = typeNode.getRepresentedType();
 
-                Type type = typeNode.getRepresentedType();
-                arguments.add(new Argument(symbolTable.getNextScopeId(), type, idNode.getText(), i+1));
+                arguments.add(new Argument(symbolTable.getNextScopeId(), type, idNode.getText(), argId));
                 argumentTypes[i] = type;
+
+                argId += (type == Types.Real ? 2 : 1);
             }
 
             Method method = new Method(symbolTable.getCurrentScopeId(), returnTypeNode.getRepresentedType(), $name.text, argumentTypes);
@@ -73,8 +76,11 @@ method_header returns [Method method]
 
 conditional
     :  ^(IF expression ^(PROGN atomic_operation+) (^(PROGN atomic_operation+) {
-                $conditional.start.hasElse = true;
-            })?);
+                System.out.println("Setting hasElse on true");
+                $start.hasElse = true;
+            })?) {
+            System.out.println("Processing conditional");
+        };
 
 loop
     :  ^(WHILE expression ^(PROGN atomic_operation+));
@@ -131,6 +137,10 @@ comparision_expression
 binary_expression
     :  ^(('-' | '*' | '/' | '%') a=binary_expression b=binary_expression) {
             TypeChecker.infer($start, $a.start, $b.start);
+            if($start.isOf(Types.Real) && !$a.start.isOf(Types.Real))
+                $a.start.setTypeToPromoteTo(Types.Real);
+            if($start.isOf(Types.Real) && !$b.start.isOf(Types.Real))
+                $b.start.setTypeToPromoteTo(Types.Real);
         }
     |  addition {
             $start.setNodeType($addition.start.getNodeType());
@@ -146,6 +156,10 @@ binary_expression
 addition
     : ^('+' a=addition_flatten b=addition_flatten) {
             TypeChecker.infer($start, $a.start, $b.start);
+            if($start.isOf(Types.Real) && !$a.start.isOf(Types.Real))
+                $a.start.setTypeToPromoteTo(Types.Real);
+            if($start.isOf(Types.Real) && !$b.start.isOf(Types.Real))
+                $b.start.setTypeToPromoteTo(Types.Real);
         }
         -> {$start.isOf(Types.String)}? ^(STRING_PLUS<ASTNode>[Types.String] addition_flatten+)
         -> ^('+' addition_flatten+)
@@ -161,8 +175,11 @@ addition_flatten
     ;
 
 atom
-    :  NUMBER {
-            $NUMBER.setNodeType(Types.Integer);
+    :  REAL {
+            $REAL.setNodeType(Types.Real);
+       }
+    |  INTEGER {
+            $INTEGER.setNodeType(Types.Integer);
         }
     |  STRING {
             $STRING.setNodeType(Types.String);

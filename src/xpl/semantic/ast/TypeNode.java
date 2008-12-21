@@ -10,7 +10,9 @@ public class TypeNode extends ASTNode {
   public TypeNode(Token tok) {
     super(tok);
 
-    if(tok.getText().equals("int"))
+    if(tok.getText().equals("real"))
+      representedType = Types.Real;
+    else if(tok.getText().equals("int"))
       representedType = Types.Integer;
     else if(tok.getText().equals("string"))
       representedType = Types.String;

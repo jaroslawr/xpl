@@ -31,30 +31,32 @@ public class CodeGeneratorMethod extends CodeGeneratorModule {
 
   public void finish(MethodNode definition) {
     Method method = definition.getMethod();
-    if(method.getReturnType().equals(Types.Integer))
+    if(method.getReturnType().equals(Types.Real))
+      currentMethod.visitInsn(DRETURN);
+    else if(method.getReturnType().equals(Types.Integer))
       currentMethod.visitInsn(IRETURN);
     else if(method.getReturnType().equals(Types.String))
       currentMethod.visitInsn(ARETURN);
     else
       currentMethod.visitInsn(RETURN);
-    currentMethod.visitMaxs(10, method.getArity() + 1);
+    currentMethod.visitMaxs(10, method.getLocalsSize());
     context.switchMethodVisitor(methods.pop());
   }
 
-  public void prepareCall() {
-    currentMethod.visitVarInsn(ALOAD, 0);
+  public void prepareCall(MethodNode call) {
+    Method method = call.getMethod();
+ 
+    if(!method.isBuiltin())
+      currentMethod.visitVarInsn(ALOAD, 0);
   }
 
   public void call(MethodNode call) {
     Method method    = call.getMethod();
     String name      = method.getName();
 
-    if(method.isBuiltin()) {
+    if(method.isBuiltin())
       currentMethod.visitMethodInsn(INVOKESTATIC, "xpl/runtime/Runtime", name, method.getSignature());
-      currentMethod.visitInsn(POP);
-    }
-    else {
+    else
       currentMethod.visitMethodInsn(INVOKEVIRTUAL, className, name, method.getSignature());
-    }
   }
 }

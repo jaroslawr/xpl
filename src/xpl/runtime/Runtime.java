@@ -9,6 +9,14 @@ public class Runtime {
     System.out.println(i);
   }
 
+  public static void print(double d) {
+    System.out.println(d);
+  }
+
+  public static double sqrt(double x) {
+    return Math.sqrt(x);
+  }
+
   public static int power(int n, int pow) {
     if(pow == 0)
       return 1;

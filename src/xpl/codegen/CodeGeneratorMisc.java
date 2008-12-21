@@ -13,7 +13,14 @@ public class CodeGeneratorMisc extends CodeGeneratorModule {
   private int stackDepth = 0;
   public int getStackDepth() { return stackDepth; }
 
-  public void load(int number) { stackDepth += 1; currentMethod.visitLdcInsn(number); }
+  public void load(ASTNode numberNode) {
+    stackDepth += 1;
+    if(numberNode.getNodeType() == Types.Integer)
+      currentMethod.visitLdcInsn(Integer.parseInt(numberNode.getText()));
+    else
+      currentMethod.visitLdcInsn(Double.parseDouble(numberNode.getText()));
+    promoteType(numberNode);
+  }
 
   public void pushThis() {
     currentMethod.visitVarInsn(ALOAD, 0);
@@ -37,6 +44,8 @@ public class CodeGeneratorMisc extends CodeGeneratorModule {
       Argument arg = (Argument) identifier;
       if(arg.getType().equals(Types.Integer))
 	currentMethod.visitVarInsn(ILOAD, arg.getId());
+      else if(arg.getType().equals(Types.Real))
+	currentMethod.visitVarInsn(DLOAD, arg.getId());
       else
 	currentMethod.visitVarInsn(ALOAD, arg.getId());
     }
@@ -45,11 +54,18 @@ public class CodeGeneratorMisc extends CodeGeneratorModule {
       currentMethod.visitVarInsn(ALOAD, 0);
       currentMethod.visitFieldInsn(GETFIELD, className, var.getVariableId(), var.typeSignature());
     }
+
+    promoteType(node);
   }
 
   public void finish() {
     currentMethod.visitInsn(RETURN);
     currentMethod.visitMaxs(10, 1);
     currentMethod.visitEnd();
+  }
+
+  private void promoteType(ASTNode operationNode) {
+    if(operationNode.getTypeToPromoteTo() != null)
+      currentMethod.visitInsn(I2D);
   }
 }

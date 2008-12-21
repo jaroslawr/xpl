@@ -2,7 +2,7 @@ grammar Xpl;
 
 options { output=AST; ASTLabelType=ASTNode; }
 
-tokens  { CALL; CALL_ARGUMENTS; WHILE; IF; METHOD; PROGN; RETURN; STRING_PLUS; TOSTRING; }
+tokens  { CALL; CALL_ARGUMENTS; WHILE; IF; METHOD; PROGN; RETURN; STRING_PLUS; TOREAL; TOSTRING; }
 
 @header {
     package xpl;
@@ -66,13 +66,15 @@ term:		             factor (('*' | '/')^ factor)*;
 
 factor:                  atom ('%'^ atom)*;
 
-atom:                    NUMBER | STRING | (IDENTIFIER '(') => call | '('! expression ')'! | IDENTIFIER<IdentifierNode>;
+atom:                    REAL | INTEGER | STRING | (IDENTIFIER '(') => call | '('! expression ')'! | IDENTIFIER<IdentifierNode>;
 
 STRING:                  '\"' (options {greedy=false;}: ('A'..'z') | ' ' | '(' | ')' | ':' | '-')* '\"';
 
-NUMBER:    	             ('0'..'9')+;
+REAL:                    ('0'..'9')+ '.' ('0'..'9')+;
 
-TYPE:                    'int' | 'string' | 'void';
+INTEGER:    	         ('0'..'9')+;
+
+TYPE:                    'int' | 'real' | 'string' | 'void';
 
 IDENTIFIER:              ('a'..'z' | '_')+;
 

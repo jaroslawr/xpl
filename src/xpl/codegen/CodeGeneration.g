@@ -55,7 +55,7 @@ conditional
         };
 
 conditional_test[boolean hasElse]
-@after { generate.conditional().ifAfterCondition(hasElse); }
+@after { System.out.println("hasElse: " + hasElse); generate.conditional().ifAfterCondition(hasElse); }
     :  expression;
 
 conditional_true_branch[boolean hasElse]
@@ -107,11 +107,11 @@ comparision_expression
     |  binary_expression;
 
 binary_expression
-    :  ^('+' a=binary_expression b=binary_expression) { generate.arithmetic().add(); }
-    |  ^('-' a=binary_expression b=binary_expression) { generate.arithmetic().subtract(); }
-    |  ^('*' a=binary_expression b=binary_expression) { generate.arithmetic().multiply(); }
-    |  ^('/' a=binary_expression b=binary_expression) { generate.arithmetic().divide(); }
-    |  ^('%' a=binary_expression b=binary_expression) { generate.arithmetic().mod(); }
+    :  ^('+' a=binary_expression b=binary_expression) { generate.arithmetic().add($start); }
+    |  ^('-' a=binary_expression b=binary_expression) { generate.arithmetic().subtract($start); }
+    |  ^('*' a=binary_expression b=binary_expression) { generate.arithmetic().multiply($start); }
+    |  ^('/' a=binary_expression b=binary_expression) { generate.arithmetic().divide($start); }
+    |  ^('%' a=binary_expression b=binary_expression) { generate.arithmetic().mod($start); }
     |  string_concatenation
     |  atom
     ;
@@ -130,7 +130,8 @@ string_concatenation_arg
         };
 
 atom
-    :  NUMBER     { generate.misc().load(Integer.parseInt($NUMBER.text)); }
+    :  REAL       { generate.misc().load($REAL); }
+    |  INTEGER    { generate.misc().load($INTEGER); }
     |  IDENTIFIER { generate.misc().loadVariable((IdentifierNode)$IDENTIFIER); }
     |  STRING     { generate.string().load(strip($STRING.text)); }
     | '(' expression ')'
@@ -138,7 +139,7 @@ atom
     ;
 
 call
-@init { generate.method().prepareCall(); }
+@init { generate.method().prepareCall((MethodNode)$start); }
     :  ^(CALL IDENTIFIER call_arguments?) { generate.method().call(((MethodNode)$start)); };
 
 call_arguments

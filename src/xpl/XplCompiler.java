@@ -39,7 +39,7 @@ public class XplCompiler {
 
       parse(); semanticAnalysis(); codeGeneration();
 
-      System.out.println("Compilations was successfull.");
+      System.out.println("Compilation was successfull.");
     }
     catch(SyntacticAnalysisError e) {
       System.out.println("Syntax errors: ");

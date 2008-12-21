@@ -27,5 +27,9 @@ public class ASTNode extends CommonTree {
   public  void setNodeType(Type nodeType) { this.nodeType = nodeType; }
   public  boolean isOf(Type nodeType)     { return this.nodeType != null && this.nodeType.equals(nodeType); }
 
+  private Type typeToPromoteTo;
+  public  void setTypeToPromoteTo(Type type) { this.typeToPromoteTo = type; }
+  public  Type getTypeToPromoteTo()          { return typeToPromoteTo; }
+
   public boolean hasElse = false;
 }

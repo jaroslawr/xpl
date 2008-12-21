@@ -1,6 +1,7 @@
 package xpl.semantic.symbols;
 
 import xpl.semantic.Type;
+import xpl.semantic.Types;
 
 public class Method extends Symbol {
   public Method(int scopeId, Type returnType, String name, Type[] argumentTypes) {
@@ -23,6 +24,17 @@ public class Method extends Symbol {
   private Type[] argumentTypes;
   public  Type[] getArgumentTypes() { return argumentTypes; }
   public  int    getArity() { return argumentTypes.length; }
+
+  public int getLocalsSize() {
+    int localsSize = 1;
+    for(Type type : argumentTypes) {
+      if(type == Types.Real)
+	localsSize += 2;
+      else
+	localsSize += 1;
+    }
+    return localsSize;
+  }
 
   public String getArgumentsSignature() {
     String result = "";

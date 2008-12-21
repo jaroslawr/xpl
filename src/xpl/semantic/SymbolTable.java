@@ -22,13 +22,16 @@ public class SymbolTable {
   public SymbolTable() {
     enterScope();
 
+    put(new Method(0, Types.Void,    "print", new Type[] { Types.Real }, true));
     put(new Method(0, Types.Void,    "print", new Type[] { Types.String  }, true));
     put(new Method(0, Types.Void,    "print", new Type[] { Types.Integer }, true));
     put(new Method(0, Types.Integer, "power", new Type[] { Types.Integer, Types.Integer }, true));
+    put(new Method(0, Types.Real,    "sqrt",  new Type[] { Types.Real }, true));
   }
 
   /**
    * Creates a new scope and enters it
+   *
    * @param scopeId The id to give to the newly created scope
    */
   public void enterScope() {
