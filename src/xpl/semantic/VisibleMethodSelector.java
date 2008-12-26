@@ -15,7 +15,7 @@ public class VisibleMethodSelector implements Selector<Symbol> {
       int scopeId = it.previous();
       if(Method.class.isInstance(symbol)) {
 	Method tried = (Method) symbol;
-	if(tried.getScopeId() == scopeId) {
+	if(tried.getScopeId() == scopeId && tried.getArity() == callSignature.length) {
 	  Type[] triedSignature = tried.getArgumentTypes();
 	  for(int i = 0; i < triedSignature.length; i++)
 	    if(!triedSignature[i].equals(callSignature[i]))

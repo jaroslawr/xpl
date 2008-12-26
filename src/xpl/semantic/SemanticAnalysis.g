@@ -76,10 +76,8 @@ method_header returns [Method method]
 
 conditional
     :  ^(IF expression ^(PROGN atomic_operation+) (^(PROGN atomic_operation+) {
-                System.out.println("Setting hasElse on true");
                 $start.hasElse = true;
             })?) {
-            System.out.println("Processing conditional");
         };
 
 loop
@@ -148,7 +146,16 @@ binary_expression
     |  '(' expr=binary_expression ')' {
             $start.setNodeType($expr.start.getNodeType());
         }
-    |  atom {
+    |  unary {
+            $start.setNodeType($unary.start.getNodeType());
+        }
+    ;
+
+unary
+    :  ^(UNARY_MINUS atom) {
+            $start.setNodeType($atom.start.getNodeType());
+        }
+    | atom {
             $start.setNodeType($atom.start.getNodeType());
         }
     ;

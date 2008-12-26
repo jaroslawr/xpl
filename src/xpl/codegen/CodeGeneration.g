@@ -55,7 +55,7 @@ conditional
         };
 
 conditional_test[boolean hasElse]
-@after { System.out.println("hasElse: " + hasElse); generate.conditional().ifAfterCondition(hasElse); }
+@after { generate.conditional().ifAfterCondition(hasElse); }
     :  expression;
 
 conditional_true_branch[boolean hasElse]
@@ -94,16 +94,16 @@ expression
     : boolean_expression;
 
 boolean_expression
-    :  ^('&&' a=boolean_expression b=boolean_expression) { generate.bool().and(); }
-    |  ^('||' a=boolean_expression b=boolean_expression) { generate.bool().or(); }
+    :  ^('&&' a=boolean_expression b=boolean_expression) { generate.bool().and($start); }
+    |  ^('||' a=boolean_expression b=boolean_expression) { generate.bool().or($start); }
     |  comparision_expression;
 
 comparision_expression
-    :  ^('==' a=binary_expression b=binary_expression) { generate.bool().equal(); }
-    |  ^('<=' a=binary_expression b=binary_expression) { generate.bool().lessThanOrEqual(); }
-    |  ^('>=' a=binary_expression b=binary_expression) { generate.bool().greaterThanOrEqual(); }
-    |  ^('<'  a=binary_expression b=binary_expression) { generate.bool().lessThan(); }
-    |  ^('>'  a=binary_expression b=binary_expression) { generate.bool().greaterThan(); }
+    :  ^('==' a=binary_expression b=binary_expression) { generate.bool().equal($start); }
+    |  ^('<=' a=binary_expression b=binary_expression) { generate.bool().lessThanOrEqual($start); }
+    |  ^('>=' a=binary_expression b=binary_expression) { generate.bool().greaterThanOrEqual($start); }
+    |  ^('<'  a=binary_expression b=binary_expression) { generate.bool().lessThan($start); }
+    |  ^('>'  a=binary_expression b=binary_expression) { generate.bool().greaterThan($start); }
     |  binary_expression;
 
 binary_expression
@@ -113,7 +113,7 @@ binary_expression
     |  ^('/' a=binary_expression b=binary_expression) { generate.arithmetic().divide($start); }
     |  ^('%' a=binary_expression b=binary_expression) { generate.arithmetic().mod($start); }
     |  string_concatenation
-    |  atom
+    |  unary
     ;
 
 string_concatenation
@@ -123,11 +123,18 @@ string_concatenation
 
 string_concatenation_arg
     :  binary_expression {
-            if($start.isOf(Types.String))
+            if($start.isOf(Types.String)) {
                 generate.string().appendString();
-            else
+            }
+            else {
                 generate.string().appendInteger();
+            }
         };
+
+unary
+    : ^(UNARY_MINUS atom) { generate.arithmetic().negate($start); }
+    |  atom
+    ;
 
 atom
     :  REAL       { generate.misc().load($REAL); }

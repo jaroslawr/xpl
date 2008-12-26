@@ -10,15 +10,13 @@ import org.objectweb.asm.MethodVisitor;
 public class CodeGeneratorMisc extends CodeGeneratorModule {
   public CodeGeneratorMisc(Context context) { super(context); }
 
-  private int stackDepth = 0;
-  public int getStackDepth() { return stackDepth; }
-
   public void load(ASTNode numberNode) {
-    stackDepth += 1;
-    if(numberNode.getNodeType() == Types.Integer)
+    if(numberNode.getNodeType() == Types.Integer) {
       currentMethod.visitLdcInsn(Integer.parseInt(numberNode.getText()));
-    else
+    }
+    else {
       currentMethod.visitLdcInsn(Double.parseDouble(numberNode.getText()));
+    }
     promoteType(numberNode);
   }
 
@@ -42,12 +40,7 @@ public class CodeGeneratorMisc extends CodeGeneratorModule {
 
     if(identifier instanceof Argument) {
       Argument arg = (Argument) identifier;
-      if(arg.getType().equals(Types.Integer))
-	currentMethod.visitVarInsn(ILOAD, arg.getId());
-      else if(arg.getType().equals(Types.Real))
-	currentMethod.visitVarInsn(DLOAD, arg.getId());
-      else
-	currentMethod.visitVarInsn(ALOAD, arg.getId());
+      currentMethod.visitVarInsn(InstructionSet.LOAD(arg.getType()), arg.getId());
     }
     else if (identifier instanceof Variable) {
       Variable var = (Variable) identifier;
@@ -65,7 +58,7 @@ public class CodeGeneratorMisc extends CodeGeneratorModule {
   }
 
   private void promoteType(ASTNode operationNode) {
-    if(operationNode.getTypeToPromoteTo() != null)
+    if(operationNode.getTypeToPromoteTo() == Types.Real)
       currentMethod.visitInsn(I2D);
   }
 }

@@ -8,43 +8,27 @@ import xpl.semantic.ast.ASTNode;
 public class CodeGeneratorArithmetic extends CodeGeneratorModule {
   public CodeGeneratorArithmetic(Context context) { super(context); }
 
-  public void add(ASTNode additionNode) {
-    if(additionNode.getNodeType() == Types.Integer)
-      currentMethod.visitInsn(IADD);
-    else
-      currentMethod.visitInsn(DADD);
+  public void add(ASTNode node) {
+    currentMethod.visitInsn(InstructionSet.ADD(node.getNodeType()));
   }
 
-  public void subtract(ASTNode substractionNode) {
-    if(substractionNode.getNodeType() == Types.Integer)
-      currentMethod.visitInsn(ISUB);
-    else
-      currentMethod.visitInsn(DSUB);
+  public void subtract(ASTNode node) {
+    currentMethod.visitInsn(InstructionSet.SUB(node.getNodeType()));
   }
 
-  public void multiply(ASTNode multiplicationNode) {
-    if(multiplicationNode.getNodeType() == Types.Integer)
-      currentMethod.visitInsn(IMUL);
-    else
-      currentMethod.visitInsn(DMUL);
+  public void multiply(ASTNode node) {
+    currentMethod.visitInsn(InstructionSet.MUL(node.getNodeType()));
   }
 
-  public void divide(ASTNode divisionNode)   {
-    if(divisionNode.getNodeType() == Types.Integer)
-      currentMethod.visitInsn(IDIV);
-    else
-      currentMethod.visitInsn(DDIV);
+  public void divide(ASTNode node) {
+    currentMethod.visitInsn(InstructionSet.DIV(node.getNodeType()));
   }
 
-  public void mod(ASTNode moduloDivisionNode) {
-    if(moduloDivisionNode.getNodeType() == Types.Integer)
-      currentMethod.visitInsn(IREM);
-    else
-      currentMethod.visitInsn(DREM);
+  public void mod(ASTNode node) {
+    currentMethod.visitInsn(InstructionSet.REM(node.getNodeType()));
   }
 
-  private void promoteType(ASTNode operationNode) {
-    if(operationNode.getTypeToPromoteTo() != null)
-      currentMethod.visitInsn(I2D);
+  public void negate(ASTNode node) {
+    currentMethod.visitInsn(InstructionSet.NEG(node.getNodeType()));
   }
 }

@@ -31,21 +31,14 @@ public class CodeGeneratorMethod extends CodeGeneratorModule {
 
   public void finish(MethodNode definition) {
     Method method = definition.getMethod();
-    if(method.getReturnType().equals(Types.Real))
-      currentMethod.visitInsn(DRETURN);
-    else if(method.getReturnType().equals(Types.Integer))
-      currentMethod.visitInsn(IRETURN);
-    else if(method.getReturnType().equals(Types.String))
-      currentMethod.visitInsn(ARETURN);
-    else
-      currentMethod.visitInsn(RETURN);
+    currentMethod.visitInsn(InstructionSet.RETURN(method.getReturnType()));
     currentMethod.visitMaxs(10, method.getLocalsSize());
     context.switchMethodVisitor(methods.pop());
   }
 
   public void prepareCall(MethodNode call) {
     Method method = call.getMethod();
- 
+
     if(!method.isBuiltin())
       currentMethod.visitVarInsn(ALOAD, 0);
   }

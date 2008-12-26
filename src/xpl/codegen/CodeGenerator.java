@@ -1,10 +1,6 @@
 package xpl.codegen;
 
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-
-public class CodeGenerator implements Opcodes {
+public class CodeGenerator {
   private Context context = new Context();
   private ContextInitializer contextInitializer = new ContextInitializer();
 

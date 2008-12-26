@@ -1,8 +1,8 @@
 grammar Xpl;
 
-options { output=AST; ASTLabelType=ASTNode; }
+options { output=AST; ASTLabelType=ASTNode; backtrack=true; }
 
-tokens  { CALL; CALL_ARGUMENTS; WHILE; IF; METHOD; PROGN; RETURN; STRING_PLUS; TOREAL; TOSTRING; }
+tokens  { CALL; CALL_ARGUMENTS; WHILE; IF; METHOD; PROGN; RETURN; STRING_PLUS; TOREAL; TOSTRING; UNARY_MINUS; }
 
 @header {
     package xpl;
@@ -62,9 +62,9 @@ comparision_expression:  binary_expression (('==' | '<=' | '>=' | '<' | '>')^ bi
 
 binary_expression:       term (('+' | '-')^ term)*;
 
-term:		             factor (('*' | '/')^ factor)*;
+term:		             unary (('*' | '/' | '%')^ unary)*;
 
-factor:                  atom ('%'^ atom)*;
+unary:                   (('-' atom) -> ^(UNARY_MINUS atom)) | atom;
 
 atom:                    REAL | INTEGER | STRING | (IDENTIFIER '(') => call | '('! expression ')'! | IDENTIFIER<IdentifierNode>;
 
