@@ -20,12 +20,17 @@ public class TypeNode extends ASTNode {
       representedType = Types.Void;
   }
 
-  public TypeNode(TypeNode node) { super(node); }
+  public TypeNode(TypeNode node) {
+    super(node);
+  }
 
   public Tree dupNode() {
     return new TypeNode(this);
   }
 
   private Type representedType;
-  public  Type getRepresentedType() { return representedType; }
+
+  public Type getRepresentedType() {
+    return representedType;
+  }
 }

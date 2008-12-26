@@ -19,6 +19,8 @@ options {
 @members {
     private SymbolTable symbolTable = new SymbolTable();
 
+    private TypeChecker typeChecker = new TypeChecker();
+
     private ArrayList<String> errors = new ArrayList<String>();
     public  ArrayList<String> getErrors() { return errors; }
 
@@ -77,8 +79,7 @@ method_header returns [Method method]
 conditional
     :  ^(IF expression ^(PROGN atomic_operation+) (^(PROGN atomic_operation+) {
                 $start.hasElse = true;
-            })?) {
-        };
+            })?);
 
 loop
     :  ^(WHILE expression ^(PROGN atomic_operation+));
@@ -116,7 +117,7 @@ expression
 
 boolean_expression
     :  ^(('&&' | '||') a=boolean_expression b=boolean_expression) {
-            TypeChecker.infer($start, $a.start, $b.start);
+            typeChecker.findType($start, $a.start, $b.start);
         }
     |  comparision_expression {
             $start.setNodeType($comparision_expression.start.getNodeType());
@@ -125,7 +126,7 @@ boolean_expression
 
 comparision_expression
     :  ^(('==' | '<=' | '>=' | '<' | '>') a=binary_expression b=binary_expression) {
-            TypeChecker.infer($start, $a.start, $b.start);
+            typeChecker.findTypeWithTypePromotion($start, $a.start, $b.start);
         }
     |  binary_expression {
             $start.setNodeType($binary_expression.start.getNodeType());
@@ -134,11 +135,7 @@ comparision_expression
 
 binary_expression
     :  ^(('-' | '*' | '/' | '%') a=binary_expression b=binary_expression) {
-            TypeChecker.infer($start, $a.start, $b.start);
-            if($start.isOf(Types.Real) && !$a.start.isOf(Types.Real))
-                $a.start.setTypeToPromoteTo(Types.Real);
-            if($start.isOf(Types.Real) && !$b.start.isOf(Types.Real))
-                $b.start.setTypeToPromoteTo(Types.Real);
+            typeChecker.findTypeWithTypePromotion($start, $a.start, $b.start);
         }
     |  addition {
             $start.setNodeType($addition.start.getNodeType());
@@ -162,11 +159,7 @@ unary
 
 addition
     : ^('+' a=addition_flatten b=addition_flatten) {
-            TypeChecker.infer($start, $a.start, $b.start);
-            if($start.isOf(Types.Real) && !$a.start.isOf(Types.Real))
-                $a.start.setTypeToPromoteTo(Types.Real);
-            if($start.isOf(Types.Real) && !$b.start.isOf(Types.Real))
-                $b.start.setTypeToPromoteTo(Types.Real);
+            typeChecker.findTypeWithTypePromotion($start, $a.start, $b.start);
         }
         -> {$start.isOf(Types.String)}? ^(STRING_PLUS<ASTNode>[Types.String] addition_flatten+)
         -> ^('+' addition_flatten+)
@@ -174,7 +167,7 @@ addition
 
 addition_flatten
     : ^('+' (operands+=addition_flatten)+) {
-            TypeChecker.infer($start, $operands);
+            typeChecker.findType($start, $operands);
         }
         -> {$start.isOf(Types.String)}? addition_flatten+
         -> ^('+' addition_flatten+)

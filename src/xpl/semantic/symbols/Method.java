@@ -16,14 +16,26 @@ public class Method extends Symbol {
   }
 
   private boolean builtin = false;
-  public  boolean isBuiltin() { return builtin; }
 
-  private Type   returnType;
-  public  Type   getReturnType() { return returnType; }
+  public boolean isBuiltin() {
+    return builtin;
+  }
+
+  private Type returnType;
+
+  public Type getReturnType() {
+    return returnType;
+  }
 
   private Type[] argumentTypes;
-  public  Type[] getArgumentTypes() { return argumentTypes; }
-  public  int    getArity() { return argumentTypes.length; }
+
+  public Type[] getArgumentTypes() {
+    return argumentTypes;
+  }
+
+  public int getArity() {
+    return argumentTypes.length;
+  }
 
   public int getLocalsSize() {
     int localsSize = 1;

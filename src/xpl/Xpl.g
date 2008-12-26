@@ -1,6 +1,6 @@
 grammar Xpl;
 
-options { output=AST; ASTLabelType=ASTNode; backtrack=true; }
+options { output=AST; ASTLabelType=ASTNode; }
 
 tokens  { CALL; CALL_ARGUMENTS; WHILE; IF; METHOD; PROGN; RETURN; STRING_PLUS; TOREAL; TOSTRING; UNARY_MINUS; }
 

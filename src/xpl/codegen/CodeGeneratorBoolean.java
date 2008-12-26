@@ -1,7 +1,6 @@
 package xpl.codegen;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
 
 import xpl.semantic.ast.ASTNode;
 import xpl.semantic.Types;

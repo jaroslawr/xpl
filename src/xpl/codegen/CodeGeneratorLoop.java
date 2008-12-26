@@ -3,7 +3,6 @@ package xpl.codegen;
 import java.util.*;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
 
 public class CodeGeneratorLoop extends CodeGeneratorModule {
   public CodeGeneratorLoop(Context context) { super(context); }

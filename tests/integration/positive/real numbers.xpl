@@ -7,7 +7,7 @@ fn square(real x) -> real
 end
 
 fn abs(real x) -> real
-  if(x >= 0.0) x else -x end
+  if(x >= 0) x else -x end
 end
 
 fn sqrt(real x) -> real

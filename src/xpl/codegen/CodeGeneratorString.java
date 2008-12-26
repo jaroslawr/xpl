@@ -1,7 +1,6 @@
 package xpl.codegen;
 
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
+import xpl.semantic.ast.ASTNode;
 
 public class CodeGeneratorString extends CodeGeneratorModule {
   public CodeGeneratorString(Context context) { super(context); }
@@ -12,19 +11,20 @@ public class CodeGeneratorString extends CodeGeneratorModule {
     currentMethod.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V");
   }
 
-  public void appendInteger() {
-    currentMethod.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(I)Ljava/lang/StringBuilder;");
-  }
-
-  public void appendString() {
-    currentMethod.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;");
+  public void append(ASTNode node) {
+    String signature = "(" + node.getNodeType().getSignature() + ")Ljava/lang/StringBuilder;";
+    currentMethod.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", signature);
   }
 
   public void finish() {
     currentMethod.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;");
   }
 
-  public void load(String string) {
-    currentMethod.visitLdcInsn(string);
+  public void load(ASTNode node) {
+    currentMethod.visitLdcInsn(strip(node.getText()));
+  }
+
+  private String strip(String literal) {
+    return literal.substring(1, literal.length() - 1);
   }
 }

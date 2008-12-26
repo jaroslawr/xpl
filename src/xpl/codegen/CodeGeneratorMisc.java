@@ -4,9 +4,6 @@ import xpl.semantic.ast.*;
 import xpl.semantic.symbols.*;
 import xpl.semantic.Types;
 
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-
 public class CodeGeneratorMisc extends CodeGeneratorModule {
   public CodeGeneratorMisc(Context context) { super(context); }
 

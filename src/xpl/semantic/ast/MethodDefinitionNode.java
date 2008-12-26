@@ -7,8 +7,15 @@ import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.tree.Tree;
 
 public class MethodDefinitionNode extends MethodNode {
-  public MethodDefinitionNode(int ttype)                 { super(new CommonToken(ttype, "METHOD")); }
-  public MethodDefinitionNode(MethodDefinitionNode node) { super(node); }
+  public MethodDefinitionNode(int ttype) {
+    super(new CommonToken(ttype, "METHOD"));
+  }
 
-  public Tree dupNode() { return new MethodDefinitionNode(this); }
+  public MethodDefinitionNode(MethodDefinitionNode node) {
+    super(node);
+  }
+
+  public Tree dupNode() {
+    return new MethodDefinitionNode(this);
+  }
 }

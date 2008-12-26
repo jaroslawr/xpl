@@ -9,6 +9,7 @@ public class Variable extends Identifier {
   }
 
   private String variableId;
+
   public String getVariableId()  {
     return variableId;
   }

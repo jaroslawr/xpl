@@ -11,10 +11,16 @@ public abstract class Symbol {
   }
 
   protected String name;
-  public    String getName() { return name; }
+
+  public String getName() {
+    return name;
+  }
 
   protected int scopeId;
-  public    int getScopeId() { return scopeId; }
+
+  public int getScopeId() {
+    return scopeId;
+  }
 
   public String toString() {
     return "[" + scopeId + "]: " + name;

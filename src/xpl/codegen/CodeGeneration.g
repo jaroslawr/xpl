@@ -23,10 +23,6 @@ options {
       this.symbolTable = symbolTable;
       this.generate    = new CodeGenerator(filename);
     }
-
-    public String strip(String literal) {
-        return literal.substring(1, literal.length() - 1);
-    }
 }
 
 program
@@ -122,14 +118,7 @@ string_concatenation
     :  ^(STRING_PLUS string_concatenation_arg+);
 
 string_concatenation_arg
-    :  binary_expression {
-            if($start.isOf(Types.String)) {
-                generate.string().appendString();
-            }
-            else {
-                generate.string().appendInteger();
-            }
-        };
+    :  binary_expression { generate.string().append($start); };
 
 unary
     : ^(UNARY_MINUS atom) { generate.arithmetic().negate($start); }
@@ -140,7 +129,7 @@ atom
     :  REAL       { generate.misc().load($REAL); }
     |  INTEGER    { generate.misc().load($INTEGER); }
     |  IDENTIFIER { generate.misc().loadVariable((IdentifierNode)$IDENTIFIER); }
-    |  STRING     { generate.string().load(strip($STRING.text)); }
+    |  STRING     { generate.string().load($start); }
     | '(' expression ')'
     |  call
     ;
