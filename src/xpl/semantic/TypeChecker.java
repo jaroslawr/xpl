@@ -24,8 +24,8 @@ public class TypeChecker {
   public void findType(ASTNode parent, final ASTNode childA, final ASTNode childB) {
     for(Type type : typePrecedence) {
       if(childA.isOf(type) || childB.isOf(type)) {
-	parent.setNodeType(type);
-	return;
+        parent.setNodeType(type);
+        return;
       }
     }
   }
@@ -54,10 +54,10 @@ public class TypeChecker {
   public void findType(ASTNode parent, final List<ASTNode> children) {
     for(Type type : typePrecedence) {
       for(ASTNode child : children) {
-	if(child.isOf(type)) {
-	  parent.setNodeType(type);
-	  return;
-	}
+        if(child.isOf(type)) {
+          parent.setNodeType(type);
+          return;
+        }
       }
     }
   }

@@ -14,15 +14,15 @@ public class VisibleMethodSelector implements Selector<Symbol> {
     for (ListIterator<Integer> it = scopes.listIterator(scopes.size()); it.hasPrevious();) {
       int scopeId = it.previous();
       if(Method.class.isInstance(symbol)) {
-	Method tried = (Method) symbol;
-	if(tried.getScopeId() == scopeId && tried.getArity() == callSignature.length) {
-	  Type[] triedSignature = tried.getArgumentTypes();
-	  for(int i = 0; i < triedSignature.length; i++)
-	    if(!triedSignature[i].equals(callSignature[i]))
-	      continue lookup;
+        Method tried = (Method) symbol;
+        if(tried.getScopeId() == scopeId && tried.getArity() == callSignature.length) {
+          Type[] triedSignature = tried.getArgumentTypes();
+          for(int i = 0; i < triedSignature.length; i++)
+            if(!triedSignature[i].equals(callSignature[i]))
+              continue lookup;
 
-	  return true;
-	}
+          return true;
+        }
       }
     }
     return false;

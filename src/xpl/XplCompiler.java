@@ -30,8 +30,8 @@ public class XplCompiler {
   public void go() {
     try {
       if(args.length != 2) {
-	System.out.println("Syntax: xpl [input file name] [output filename]");
-	return;
+        System.out.println("Syntax: xpl [input file name] [output filename]");
+        return;
       }
 
       System.out.println("Compiling " + args[0] + "...");
@@ -45,7 +45,7 @@ public class XplCompiler {
       System.out.println("Syntax errors: ");
       System.out.println();
       for(String error : parser.getErrors())
-	System.out.println(error);
+        System.out.println(error);
       System.out.println();
       System.out.println("Compilation failed.");
     }
@@ -53,7 +53,7 @@ public class XplCompiler {
       System.out.println("Semantic errors: ");
       System.out.println();
       for(String error : semanticAnalysis.getErrors())
-	System.out.println(error);
+        System.out.println(error);
       System.out.println();
       System.out.println("Compilation failed.");
     }

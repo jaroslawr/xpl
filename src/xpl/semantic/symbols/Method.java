@@ -41,9 +41,9 @@ public class Method extends Symbol {
     int localsSize = 1;
     for(Type type : argumentTypes) {
       if(type == Types.Real)
-	localsSize += 2;
+        localsSize += 2;
       else
-	localsSize += 1;
+        localsSize += 1;
     }
     return localsSize;
   }

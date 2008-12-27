@@ -40,7 +40,7 @@ public class HashMultiMap<K, V> {
     for (ListIterator<V> it = values.listIterator(values.size()); it.hasPrevious();) {
       V value = it.previous();
       if(selector.select(value))
-	 return value;
+        return value;
     }
     return null;
   }
@@ -58,7 +58,7 @@ public class HashMultiMap<K, V> {
     for (ListIterator<V> it = values.listIterator(values.size()); it.hasPrevious();) {
       V value = it.previous();
       if(selector.select(value))
-	result.add(value);
+        result.add(value);
     }
     return result;
   }
