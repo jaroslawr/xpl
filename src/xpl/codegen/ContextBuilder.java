@@ -4,15 +4,15 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-public class ContextInitializer implements Opcodes {
+public class ContextBuilder implements Opcodes {
   private ClassWriter classWriter;
   private String className;
 
-  public void initialize(Context context, String filename) {
+  public Context create(String filename) {
     this.className   = extractClassName(filename);
     this.classWriter = stubClass();
 
-    context.initialize(className, classWriter, generateInit(), generateMain(), generateRun());
+    return new Context(className, classWriter, generateInit(), generateMain(), generateRun());
   }
 
   private ClassWriter stubClass() {

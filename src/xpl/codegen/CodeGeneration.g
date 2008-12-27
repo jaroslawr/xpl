@@ -26,10 +26,7 @@ options {
 }
 
 program
-@after {
-    generate.misc().finish();
-    generate.getOutput().save();
-}
+@after { this.generate.finish(); }
     : (method_definition | atomic_operation)+;
 
 atomic_operation
@@ -39,10 +36,9 @@ method_definition
 @after { generate.method().finish((MethodNode)$start); }
     :  ^(METHOD header=method_header[(MethodNode)$start] ^(PROGN (atomic_operation | method_definition)+));
 
-method_header[MethodNode methodNode] returns [int argumentsCount]
+method_header[MethodNode methodNode]
     :  ^(name=IDENTIFIER ((TYPE args+=IDENTIFIER)+)? return_type=TYPE) {
             generate.method().definition(methodNode);
-            {$argumentsCount = $args.size() + 1;}
         };
 
 conditional
@@ -75,15 +71,15 @@ loop_body
     :  atomic_operation+;
 
 variable_definition
-@init  { generate.misc().pushThis(); }
+@init  { generate.variable().beforeReference(); }
     :  ^('=' TYPE name=IDENTIFIER value=expression) {
-            generate.misc().createVariable(((VariableNode)$name));
+            generate.variable().initialization(((VariableNode)$name));
         };
 
 assignment
-@init  { generate.misc().pushThis(); }
+@init  { generate.variable().beforeReference(); }
     :  ^('=' name=IDENTIFIER value=expression) {
-            generate.misc().assignToVariable(((VariableNode)$name));
+            generate.variable().assignment(((VariableNode)$name));
         };
 
 expression
@@ -126,9 +122,9 @@ unary
     ;
 
 atom
-    :  REAL       { generate.misc().load($REAL); }
-    |  INTEGER    { generate.misc().load($INTEGER); }
-    |  IDENTIFIER { generate.misc().loadVariable((IdentifierNode)$IDENTIFIER); }
+    :  REAL       { generate.constant().load($start); }
+    |  INTEGER    { generate.constant().load($start); }
+    |  IDENTIFIER { generate.variable().reference((IdentifierNode)$start); }
     |  STRING     { generate.string().load($start); }
     | '(' expression ')'
     |  call

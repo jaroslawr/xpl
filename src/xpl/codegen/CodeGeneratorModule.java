@@ -4,6 +4,10 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 
+import xpl.semantic.Types;
+
+import xpl.semantic.ast.ASTNode;
+
 public class CodeGeneratorModule implements Opcodes {
   protected Context       context;
   protected ClassWriter   classWriter;
@@ -22,5 +26,10 @@ public class CodeGeneratorModule implements Opcodes {
 
   public void currentMethodVisitorChanged(MethodVisitor currentMethod) {
     this.currentMethod = currentMethod;
+  }
+
+  protected void promoteType(ASTNode node) {
+    if(node.getTypeToPromoteTo() == Types.Real)
+      currentMethod.visitInsn(I2D);
   }
 }

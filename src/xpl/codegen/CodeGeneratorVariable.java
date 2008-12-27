@@ -4,35 +4,25 @@ import xpl.semantic.ast.*;
 import xpl.semantic.symbols.*;
 import xpl.semantic.Types;
 
-public class CodeGeneratorMisc extends CodeGeneratorModule {
-  public CodeGeneratorMisc(Context context) { super(context); }
+public class CodeGeneratorVariable extends CodeGeneratorModule {
+  public CodeGeneratorVariable(Context context) { super(context); }
 
-  public void load(ASTNode numberNode) {
-    if(numberNode.getNodeType() == Types.Integer) {
-      currentMethod.visitLdcInsn(Integer.parseInt(numberNode.getText()));
-    }
-    else {
-      currentMethod.visitLdcInsn(Double.parseDouble(numberNode.getText()));
-    }
-    promoteType(numberNode);
-  }
-
-  public void pushThis() {
+  public void beforeReference() {
     currentMethod.visitVarInsn(ALOAD, 0);
   };
 
-  public void createVariable(VariableNode node) {
+  public void initialization(VariableNode node) {
     Variable var = node.getVariable();
     classWriter.visitField(ACC_PUBLIC, var.getVariableId(), var.typeSignature(), "", null);
-    assignToVariable(node);
+    assignment(node);
   }
 
-  public void assignToVariable(VariableNode node) {
+  public void assignment(VariableNode node) {
     Variable var = node.getVariable();
     currentMethod.visitFieldInsn(PUTFIELD, className, var.getVariableId(), var.typeSignature());
   }
 
-  public void loadVariable(IdentifierNode node) {
+  public void reference(IdentifierNode node) {
     Identifier identifier = node.getIdentifier();
 
     if(identifier instanceof Argument) {
@@ -46,16 +36,5 @@ public class CodeGeneratorMisc extends CodeGeneratorModule {
     }
 
     promoteType(node);
-  }
-
-  public void finish() {
-    currentMethod.visitInsn(RETURN);
-    currentMethod.visitMaxs(10, 1);
-    currentMethod.visitEnd();
-  }
-
-  private void promoteType(ASTNode operationNode) {
-    if(operationNode.getTypeToPromoteTo() == Types.Real)
-      currentMethod.visitInsn(I2D);
   }
 }

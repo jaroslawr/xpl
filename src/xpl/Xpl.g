@@ -64,7 +64,7 @@ binary_expression:       term (('+' | '-')^ term)*;
 
 term:		             unary (('*' | '/' | '%')^ unary)*;
 
-unary:                   (('-' atom) -> ^(UNARY_MINUS atom)) | atom;
+unary:                   (('-' unary) -> ^(UNARY_MINUS unary)) | atom;
 
 atom:                    REAL | INTEGER | STRING | (IDENTIFIER '(') => call | '('! expression ')'! | IDENTIFIER<IdentifierNode>;
 
