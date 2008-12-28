@@ -7,6 +7,7 @@ import xpl.semantic.ast.ASTNodeTreeAdaptor;
 import xpl.semantic.SemanticAnalysis;
 
 import xpl.codegen.CodeGeneration;
+import xpl.codegen.Output;
 
 import java.io.*;
 import org.antlr.runtime.*;
@@ -90,6 +91,9 @@ public class XplCompiler {
   private void codeGeneration() throws RecognitionException {
     codeGeneration = new CodeGeneration(nodes, args[1]);
     codeGeneration.program();
+
+    Output output = new Output(args[1], codeGeneration.getResults());
+    output.save();
   }
 }
 

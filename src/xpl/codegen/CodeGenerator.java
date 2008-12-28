@@ -1,16 +1,20 @@
 package xpl.codegen;
 
-public class CodeGenerator {
-  private Context context;
+import org.objectweb.asm.ClassWriter;
 
-  private CodeGeneratorArithmetic  cgArithmetic;
-  private CodeGeneratorBoolean     cgBoolean;
-  private CodeGeneratorConditional cgConditional;
-  private CodeGeneratorConstant    cgConstant;
-  private CodeGeneratorLoop        cgLoop;
-  private CodeGeneratorMethod      cgMethod;
-  private CodeGeneratorString      cgString;
-  private CodeGeneratorVariable    cgVariable;
+public class CodeGenerator {
+  private Context context = new Context(null, null, null);
+
+  private CodeGeneratorMain        cgMain        = new CodeGeneratorMain(context);
+
+  private CodeGeneratorArithmetic  cgArithmetic  = new CodeGeneratorArithmetic(context);
+  private CodeGeneratorBoolean     cgBoolean     = new CodeGeneratorBoolean(context);
+  private CodeGeneratorConditional cgConditional = new CodeGeneratorConditional(context);
+  private CodeGeneratorConstant    cgConstant    = new CodeGeneratorConstant(context);
+  private CodeGeneratorLoop        cgLoop        = new CodeGeneratorLoop(context);
+  private CodeGeneratorMethod      cgMethod      = new CodeGeneratorMethod(context);
+  private CodeGeneratorString      cgString      = new CodeGeneratorString(context);
+  private CodeGeneratorVariable    cgVariable    = new CodeGeneratorVariable(context);
 
   public CodeGeneratorArithmetic   arithmetic()  { return cgArithmetic; }
   public CodeGeneratorBoolean      bool()        { return cgBoolean; }
@@ -21,24 +25,14 @@ public class CodeGenerator {
   public CodeGeneratorString       string()      { return cgString; }
   public CodeGeneratorVariable     variable()    { return cgVariable; }
 
-  private Output output;
+  private ClassWriter result;
 
   public CodeGenerator(String filename) {
-    context       = new ContextBuilder().create(filename);
-    output        = new Output(context.getClassWriter(), filename);
-
-    cgArithmetic  = new CodeGeneratorArithmetic(context);
-    cgBoolean     = new CodeGeneratorBoolean(context);
-    cgConditional = new CodeGeneratorConditional(context);
-    cgConstant    = new CodeGeneratorConstant(context);
-    cgLoop        = new CodeGeneratorLoop(context);
-    cgMethod      = new CodeGeneratorMethod(context);
-    cgString      = new CodeGeneratorString(context);
-    cgVariable    = new CodeGeneratorVariable(context);
+    result = cgMain.stubMainClass(filename);
   }
 
-  public void finish() {
-    context.finish();
-    output.save();
+  public byte[] finish() {
+    cgMain.finishMainClass();
+    return result.toByteArray();
   }
 }

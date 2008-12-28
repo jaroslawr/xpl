@@ -24,7 +24,7 @@ public class CodeGeneratorModule implements Opcodes {
     this.classWriter = classWriter;
   }
 
-  public void currentMethodVisitorChanged(MethodVisitor currentMethod) {
+  public void currentMethodChanged(MethodVisitor currentMethod) {
     this.currentMethod = currentMethod;
   }
 

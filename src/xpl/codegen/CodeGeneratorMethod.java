@@ -20,7 +20,7 @@ public class CodeGeneratorMethod extends CodeGeneratorModule {
       methods.push(currentMethod);
 
     Method method = definition.getMethod();
-    String name   = method.getName();
+    String name = method.getName();
     MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC, name, method.getSignature(), null, null);
     context.switchMethodVisitor(methodVisitor);
   }
@@ -44,12 +44,12 @@ public class CodeGeneratorMethod extends CodeGeneratorModule {
   }
 
   public void call(MethodNode call) {
-    Method method    = call.getMethod();
-    String name      = method.getName();
+    Method method        = call.getMethod();
 
-    if(method.isBuiltin())
-      currentMethod.visitMethodInsn(INVOKESTATIC, "xpl/runtime/Runtime", name, method.getSignature());
-    else
-      currentMethod.visitMethodInsn(INVOKEVIRTUAL, className, name, method.getSignature());
+    String name          = method.getName();
+    int invocationKind   = method.isBuiltin() ? INVOKESTATIC : INVOKEVIRTUAL;
+    String invokingClass = method.isBuiltin() ? "xpl/runtime/Runtime" : className;
+
+    currentMethod.visitMethodInsn(invocationKind, invokingClass, name, method.getSignature());
   }
 }

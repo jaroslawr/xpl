@@ -23,10 +23,13 @@ options {
       this.symbolTable = symbolTable;
       this.generate    = new CodeGenerator(filename);
     }
+
+    public byte[] getResults() {
+        return this.generate.finish();
+    }
 }
 
 program
-@after { this.generate.finish(); }
     : (method_definition | atomic_operation)+;
 
 atomic_operation

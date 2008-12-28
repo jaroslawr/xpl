@@ -5,18 +5,18 @@ import java.io.*;
 import org.objectweb.asm.ClassWriter;
 
 public class Output {
-  private ClassWriter writer;
-  private String      filename;
+  private String filename;
+  private byte[] bytes;
 
-  public Output(ClassWriter writer, String filename) {
-    this.writer   = writer;
+  public Output(String filename, byte[] bytes) {
     this.filename = filename;
+    this.bytes    = bytes;
   }
 
   public void save() {
     try {
       FileOutputStream stream = new FileOutputStream(filename);
-      stream.write(writer.toByteArray());
+      stream.write(bytes);
       stream.close();
     }
     catch(IOException e) {
