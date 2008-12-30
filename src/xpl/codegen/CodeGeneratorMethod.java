@@ -44,11 +44,10 @@ public class CodeGeneratorMethod extends CodeGeneratorModule {
   }
 
   public void call(MethodNode call) {
-    Method method        = call.getMethod();
-
-    String name          = method.getName();
-    int invocationKind   = method.isBuiltin() ? INVOKESTATIC : INVOKEVIRTUAL;
-    String invokingClass = method.isBuiltin() ? "xpl/runtime/Runtime" : className;
+    Method method         = call.getMethod();
+    String name           = method.getName();
+    int    invocationKind = method.isBuiltin() ? INVOKESTATIC : INVOKEVIRTUAL;
+    String invokingClass  = method.isBuiltin() ? "xpl/runtime/Runtime" : className;
 
     currentMethod.visitMethodInsn(invocationKind, invokingClass, name, method.getSignature());
   }

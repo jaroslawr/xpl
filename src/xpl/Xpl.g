@@ -68,7 +68,7 @@ unary:                   (('-' unary) -> ^(UNARY_MINUS unary)) | atom;
 
 atom:                    REAL | INTEGER | STRING | (IDENTIFIER '(') => call | '('! expression ')'! | IDENTIFIER<IdentifierNode>;
 
-STRING:                  '\"' (options {greedy=false;}: ('A'..'z') | ' ' | '(' | ')' | ':' | '-')* '\"';
+STRING:                  '\"' (options {greedy=false;}: ('A'..'z') | ('0' .. '9') | ' ' | '(' | ')' | '.' | ':' | '-')* '\"';
 
 REAL:                    ('0'..'9')+ '.' ('0'..'9')+;
 

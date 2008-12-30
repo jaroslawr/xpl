@@ -32,10 +32,10 @@ public class IntegrationTest {
   }
 
   private void checkIfWasCompiled(File xplProgramFile) {
-    File xplClassFile = new File(path + basename + ".class");
+    File xplClassFile = new File(path + "output/" + basename + ".class");
     if(!xplClassFile.exists()) {
-      String error         =  xplProgramFile + " compilation output isn't available";
-      String compileOutput = readFromFile(path + basename + ".compilation", error);
+      String error         = xplProgramFile + " compilation output isn't available";
+      String compileOutput = readFromFile(path + "output/" + basename + ".compilation", error);
       fail(xplProgramFile + " couldn't be compiled\n" + compileOutput);
     }
   }
@@ -43,10 +43,10 @@ public class IntegrationTest {
   private void checkIfProgramOutputWasCorrect(File xplProgramFile) {
     String error         = xplProgramFile + " outputs aren't available";
     String desiredOutput = readFromFile(path + basename + ".output-desired", error);
-    String currentOutput = readFromFile(path + basename + ".output-current", error);
+    String currentOutput = readFromFile(path + "output/" + basename + ".output-current", error);
 
     if(!currentOutput.equals(desiredOutput)) {
-      String outputsDiff = readFromFile(path + basename + ".output-diff", error);
+      String outputsDiff = readFromFile(path + "output/"  + basename + ".output-diff", error);
       fail(xplProgramFile + " gave incorrect output\n" + outputsDiff);
     }
   }
@@ -67,7 +67,7 @@ public class IntegrationTest {
   private void checkIfCompilationOutputWasCorrect(File xplProgramFile) {
     String error         = xplProgramFile + " outputs aren't available";
     String desiredOutput = readFromFile(path + basename + ".compilation-desired", error);
-    String currentOutput = readFromFile(path + basename + ".compilation-current", error);
+    String currentOutput = readFromFile(path + "output/" + basename + ".compilation-current", error);
 
     if(!currentOutput.equals(desiredOutput)) {
       fail(xplProgramFile + "Compilation was expected to emit the following errors: \n" +
