@@ -1,7 +1,7 @@
 xpl
 ===
 
-This is a toy programming language and compiler that emits JVM code. About the most sophisticated program this is able to compile is this:
+This is a toy programming language and compiler that emits JVM code. About the most sophisticated program that can currently be compiled is this example (square root via Newton's method example from SICP):
 
 ```
 fn average(real a, real b) -> real
@@ -38,3 +38,5 @@ end
 
 print(sqrt(3.0))
 ```
+
+The compiler has a suite of quite a few integration tests, so some other example programs can be found in tests/integration/positive, in files with .xpl extension, with corresponding .output-desired files containing the output expected from the program. tests/integration/negative are programs that are expected to not be compiled by the compiler, and the corresponding .compilation-desired file contains the desired compiler output in such case.
