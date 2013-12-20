@@ -40,3 +40,5 @@ print(sqrt(3.0))
 ```
 
 The compiler has a suite of quite a few integration tests, so some other example programs can be found in tests/integration/positive, in files with .xpl extension, with corresponding .output-desired files containing the output expected from the program. tests/integration/negative are programs that are expected to not be compiled by the compiler, and the corresponding .compilation-desired file contains the desired compiler output in such case.
+
+To compile and run this, one needs ant, ant-junit, antlr-3.x, and junit 4.x in the classpath. Then you can just use ./build to compile.
